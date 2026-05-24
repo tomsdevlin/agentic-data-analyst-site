@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Analyst — How It Works</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --col-plan:   #fff8e1;
+      --col-exec:   #e8f5e9;
+      --col-synth:  #fce4ec;
+      --col-review: #ede7f6;
+      --col-pass:   #e8f5e9;
+
+      --border-plan:   #ffcc44;
+      --border-exec:   #66bb6a;
+      --border-synth:  #f48fb1;
+      --border-review: #9575cd;
+
+      --text:    #1a1a2e;
+      --muted:   #6c757d;
+      --surface: #f8f9fa;
+      --white:   #ffffff;
+      --accent:  #2563eb;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--white);
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 52px;
+    }
+    nav .brand { font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.875rem; transition: color .15s; }
+    nav a:hover { color: var(--accent); }
+    nav .spacer { flex: 1; }
+
+    /* ── LAYOUT ── */
+    .section { padding: 80px 2rem; max-width: 860px; margin: 0 auto; }
+    .section + .section { border-top: 1px solid #e5e7eb; }
+    .section.wide { max-width: 1040px; }
+
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+    h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    p  { margin-bottom: 1rem; color: #374151; }
+    p:last-child { margin-bottom: 0; }
+
+    .lead { font-size: 1.2rem; color: #cbd5e1; margin-top: 1.25rem; max-width: 680px; line-height: 1.6; }
+
+    /* ── HERO ── */
+    #hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      padding: 100px 2rem 90px;
+    }
+    #hero .inner { max-width: 860px; margin: 0 auto; }
+    #hero h1 { color: white; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #e2e8f0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── PROBLEM ── */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 480px) { .problem-grid { grid-template-columns: 1fr; } }
+
+    .problem-card {
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .problem-card .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .problem-card h3 { font-size: 0.95rem; }
+    .problem-card p  { font-size: 0.875rem; color: var(--muted); margin: 0; }
+
+    /* ── FLOWCHART DIAGRAM ── */
+    .diagram-wrap {
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+
+    .fc-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 340px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Input / output pill */
+    .fc-io {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      background: #f1f5f9;
+      border: 1.5px solid #94a3b8;
+      border-radius: 999px;
+      padding: 0.35rem 1.25rem;
+    }
+
+    /* Vertical connector arrow */
+    .fc-arr {
+      font-size: 1.2rem;
+      color: #9ca3af;
+      line-height: 1;
+      padding: 0.2rem 0;
+      user-select: none;
+    }
+
+    /* Stage group */
+    .fc-group {
+      width: 100%;
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      padding: 0.875rem 0.875rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .fc-group-tag {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 0 6px;
+      border-radius: 3px;
+    }
+
+    .fc-g-plan   { background: var(--col-plan);   border-color: var(--border-plan); }
+    .fc-g-exec   { background: var(--col-exec);   border-color: var(--border-exec); }
+    .fc-g-synth  { background: var(--col-synth);  border-color: var(--border-synth); }
+    .fc-g-review { background: var(--col-review); border-color: var(--border-review); }
+
+    .fc-g-plan   .fc-group-tag { background: var(--col-plan);   color: #7c5a00; }
+    .fc-g-exec   .fc-group-tag { background: var(--col-exec);   color: #1b5e20; }
+    .fc-g-synth  .fc-group-tag { background: var(--col-synth);  color: #880e4f; }
+    .fc-g-review .fc-group-tag { background: var(--col-review); color: #4527a0; }
+
+    /* Process box */
+    .fc-box {
+      background: white;
+      border: 1.5px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.38rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-align: center;
+      color: #374151;
+      min-width: 210px;
+    }
+
+    /* Decision row: diamond + no-branch side */
+    .fc-dec-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: center;
+    }
+
+    /* Diamond via clip-path */
+    .fc-diamond {
+      width: 96px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+
+    .fc-d-plan   { background: #f5d000; color: #5a3e00; }
+    .fc-d-synth  { background: var(--border-synth); color: #fff; }
+    .fc-d-review { background: var(--border-review); color: #fff; }
+
+    /* Side branch (No → error, or Yes → rewrite) */
+    .fc-branch {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+
+    .fc-branch-line {
+      width: 18px;
+      height: 1.5px;
+      background: #9ca3af;
+    }
+
+    .fc-branch-lbl {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+
+    .fc-err {
+      font-size: 0.72rem;
+      color: #ef4444;
+      background: white;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      padding: 0.22rem 0.55rem;
+      white-space: nowrap;
+    }
+
+    .fc-rewrite {
+      font-size: 0.72rem;
+      color: #4527a0;
+      background: white;
+      border: 1px solid #c4b5fd;
+      border-radius: 6px;
+      padding: 0.22rem 0.55rem;
+      white-space: nowrap;
+    }
+
+    /* Yes label above down-arrow */
+    .fc-yes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      padding: 0.1rem 0;
+    }
+
+    .fc-yes-lbl {
+      font-size: 0.67rem;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 1px;
+    }
+
+    .fc-yes-arr {
+      font-size: 1.1rem;
+      color: #9ca3af;
+      line-height: 1;
+    }
+
+    /* Output verdicts */
+    .fc-out {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .fc-v {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1.5px solid;
+    }
+
+    .fc-pass { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .fc-rev  { background: #fef9c3; border-color: #fbbf24; color: #92400e; }
+    .fc-fail { background: #fef2f2; border-color: #f87171; color: #991b1b; }
+
+    /* ── STAGE ACCORDION ── */
+    .accordion { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+    details.stage {
+      border-radius: 10px;
+      border: 1.5px solid #e5e7eb;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    details.stage[open] { border-color: #9ca3af; }
+
+    details.stage summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      user-select: none;
+    }
+    details.stage summary::-webkit-details-marker { display: none; }
+
+    .stage-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .num-plan   { background: var(--col-plan);   color: #7c5a00;  border: 1.5px solid var(--border-plan); }
+    .num-exec   { background: var(--col-exec);   color: #1b5e20;  border: 1.5px solid var(--border-exec); }
+    .num-synth  { background: var(--col-synth);  color: #880e4f;  border: 1.5px solid var(--border-synth); }
+    .num-review { background: var(--col-review); color: #4527a0;  border: 1.5px solid var(--border-review); }
+
+    .stage-title { font-weight: 600; font-size: 1rem; flex: 1; }
+    .stage-subtitle { font-size: 0.82rem; color: var(--muted); }
+
+    .chevron {
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+      transition: transform .2s;
+      color: var(--muted);
+    }
+    details[open] .chevron { transform: rotate(90deg); }
+
+    .stage-body {
+      padding: 0 1.25rem 1.25rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .stage-body p { font-size: 0.95rem; }
+    .stage-body p:first-child { margin-top: 1rem; }
+
+    .io-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 560px) { .io-row { grid-template-columns: 1fr; } }
+
+    .io-box {
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
+    }
+    .io-box .io-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
+
+    /* ── QUALITY CHECKS ── */
+    .flag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .flag-card {
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      border: 1.5px solid transparent;
+      font-size: 0.9rem;
+    }
+    .flag-card.correctable { background: #fff5f5; border-color: #fca5a5; }
+    .flag-card.advisory    { background: #fffbeb; border-color: #fcd34d; }
+    .flag-card .flag-label { font-weight: 700; font-size: 0.82rem; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
+    .flag-card.correctable .flag-label { color: #b91c1c; }
+    .flag-card.advisory    .flag-label { color: #92400e; }
+    .flag-card p { margin: 0; color: #374151; }
+
+    .revision-note {
+      margin-top: 1.5rem;
+      background: var(--col-review);
+      border: 1.5px solid var(--border-review);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      font-size: 0.92rem;
+      color: #2d1b69;
+    }
+
+    /* ── EXAMPLE OUTPUT ── */
+    .finding-card {
+      background: var(--white);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+    .finding-header {
+      background: var(--surface);
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .finding-title { font-weight: 700; font-size: 1rem; }
+    .confidence-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1.5px solid;
+    }
+    .conf-high   { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .conf-medium { background: #fef9c3; border-color: #fbbf24; color: #92400e; }
+
+    .finding-body { padding: 1.25rem; }
+    .finding-body p { font-size: 0.95rem; }
+
+    .finding-meta {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .meta-row { font-size: 0.85rem; display: flex; gap: 0.5rem; }
+    .meta-label { font-weight: 600; color: var(--muted); min-width: 120px; }
+    .meta-value { color: #374151; }
+
+    .finding-note {
+      margin-top: 1.25rem;
+      padding: 0.875rem 1rem;
+      background: var(--surface);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── NEXT STEP BUTTONS DEMO ── */
+    .next-step-demo {
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+    .next-step-demo-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 0.65rem;
+    }
+    .next-step-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .next-step-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 0.5rem 0.875rem;
+      background: white;
+      border: 1.5px solid #93c5fd;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #1d4ed8;
+      cursor: default;
+      font-family: inherit;
+      line-height: 1.45;
+    }
+    .next-step-demo-note {
+      margin-top: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── HOW IT RUNS ── */
+    .runs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .runs-block {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 620px) { .runs-block { grid-template-columns: 1fr; } }
+    .runs-block .runs-label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      padding-top: 0.15rem;
+    }
+    .runs-block .runs-content h3 { margin-bottom: 0.5rem; }
+    .runs-block .runs-content p  { font-size: 0.92rem; }
+
+    .playbook-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .playbook-pill {
+      background: var(--surface);
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 0.8rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .guardrail-list {
+      list-style: none;
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .guardrail-list li {
+      font-size: 0.9rem;
+      padding-left: 1.4rem;
+      position: relative;
+      color: #374151;
+    }
+    .guardrail-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .guardrail-list .label { font-weight: 600; color: var(--text); }
+
+
+    /* ── RUNS SECTION DIVIDER ── */
+    .runs-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 2rem 0 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="brand" href="#hero">AI Analyst</a>
+  <a href="#pipeline">How it works</a>
+  <a href="#stages">Stage by stage</a>
+  <a href="#quality">Quality checks</a>
+  <a href="#example">Example output</a>
+  <a href="#runs">Under the hood</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="inner">
+    <div class="badge">Local &nbsp;·&nbsp; Private &nbsp;·&nbsp; Automated</div>
+    <h1>AI Analyst</h1>
+    <p class="lead">
+      AI-powered data analysis that runs entirely on your own hardware.
+      Your data never leaves your system — no cloud, no external servers, no loss of control.
+    </p>
+  </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section id="problem" class="section">
+  <h2>Why this exists</h2>
+  <p>
+    Ever wanted to take advantage of AI for data analysis, but not comfortable with your data going out to
+    the internet and losing control of it? That is why AI Analyst exists.
+  </p>
+  <p>
+    Most AI analysis tools require you to send your data to a cloud server, where it passes through external
+    infrastructure, may be logged, and sits outside your control. AI Analyst runs entirely on your own hardware.
+    The language models are local, the computation is local, and your data never travels anywhere.
+  </p>
+  <p>
+    Beyond privacy, it also solves the translation problem that slows down analytical work: turning a business
+    question into code, running it correctly, and writing up findings that are accurate and qualified.
+    AI Analyst handles that workflow end-to-end — goal statement in, structured written findings out —
+    without requiring any code from you.
+  </p>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="icon">🔒</div>
+      <h3>Your data stays local</h3>
+      <p>Data never leaves your machine. All AI models run on local hardware — no cloud, no external API calls.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">🎯</div>
+      <h3>Goal-directed</h3>
+      <p>You state what you want to understand. The system decides how to investigate it.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">📋</div>
+      <h3>Self-checking</h3>
+      <p>Findings are reviewed automatically. Claims that don't match the evidence are corrected before you see them.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">💬</div>
+      <h3>No code needed</h3>
+      <p>State the question in plain English. The system writes, runs, and interprets the code on your behalf.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">📊</div>
+      <h3>Upload any CSV</h3>
+      <p>Drop in your CSV file through the app — sales data, HR records, operational logs — and the system is ready to analyse it.</p>
+    </div>
+    <div class="problem-card">
+      <div class="icon">🔍</div>
+      <h3>Traceable findings</h3>
+      <p>Every insight cites the queries that produced it. Nothing is asserted without support from the data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE OVERVIEW -->
+<section id="pipeline" class="section wide">
+  <h2>The four-stage pipeline</h2>
+  <p>
+    Every analysis runs through the same sequence of stages. Each stage has a distinct role,
+    uses a dedicated language model, and passes a structured result to the next stage.
+    The pipeline is designed so that any stage can fail independently — a planning failure
+    doesn't run the executor, and a synthesis failure surfaces a clear error, not a silent wrong answer.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="fc-flow">
+
+      <div class="fc-io">Your goal + dataset</div>
+      <div class="fc-arr">↓</div>
+
+      <!-- Stage 1: Planner -->
+      <div class="fc-group fc-g-plan">
+        <div class="fc-group-tag">Stage 1 · Planner</div>
+        <div class="fc-box">Read schema &amp; playbooks</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-box">Break goal into questions</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-dec-row">
+          <div class="fc-diamond fc-d-plan">Plan<br>ready?</div>
+          <div class="fc-branch">
+            <div class="fc-branch-line"></div>
+            <span class="fc-branch-lbl">No →</span>
+            <div class="fc-err">Error — pipeline stops</div>
+          </div>
+        </div>
+        <div class="fc-yes">
+          <span class="fc-yes-lbl">Yes</span>
+          <span class="fc-yes-arr">↓</span>
+        </div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Stage 2: Executor -->
+      <div class="fc-group fc-g-exec">
+        <div class="fc-group-tag">Stage 2 · Executor</div>
+        <div class="fc-box">Write &amp; run Python code</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-box">Narrate result in plain English</div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Stage 3: Synthesiser -->
+      <div class="fc-group fc-g-synth">
+        <div class="fc-group-tag">Stage 3 · Synthesiser</div>
+        <div class="fc-box">Build structured findings</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-dec-row">
+          <div class="fc-diamond fc-d-synth">Synthesis<br>complete?</div>
+          <div class="fc-branch">
+            <div class="fc-branch-line"></div>
+            <span class="fc-branch-lbl">No →</span>
+            <div class="fc-err">Error — pipeline stops</div>
+          </div>
+        </div>
+        <div class="fc-yes">
+          <span class="fc-yes-lbl">Yes</span>
+          <span class="fc-yes-arr">↓</span>
+        </div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Stage 4: Reviewer -->
+      <div class="fc-group fc-g-review">
+        <div class="fc-group-tag">Stage 4 · Reviewer</div>
+        <div class="fc-box">Check findings vs evidence</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-dec-row">
+          <div class="fc-diamond fc-d-review">Problems<br>found?</div>
+          <div class="fc-branch">
+            <div class="fc-branch-line"></div>
+            <span class="fc-branch-lbl">Yes →</span>
+            <div class="fc-rewrite">Rewrite flagged findings ↺ (max 2 rounds)</div>
+          </div>
+        </div>
+        <div class="fc-yes">
+          <span class="fc-yes-lbl">No / max 2 rounds</span>
+          <span class="fc-yes-arr">↓</span>
+        </div>
+        <div class="fc-box">Apply confidence adjustments</div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Output -->
+      <div class="fc-out">
+        <span class="fc-v fc-pass">PASS</span>
+        <span class="fc-v fc-rev">REVIEW</span>
+        <span class="fc-v fc-fail">FAIL</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- STAGE BY STAGE -->
+<section id="stages" class="section">
+  <h2>Stage by stage</h2>
+  <p>Each stage is a separate, independently testable component. Expand any stage to see what it does.</p>
+
+  <div class="accordion">
+
+    <!-- PLANNER -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-plan">1</div>
+        <div>
+          <div class="stage-title">Planner</div>
+          <div class="stage-subtitle">Breaks the goal into a sequence of analytical questions</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          The planner reads the dataset's column schema and retrieves the most relevant
+          analytical playbooks, then produces a structured plan: a numbered list of plain-English
+          questions that, taken together, address the goal.
+        </p>
+        <p>
+          Each question is mapped to a dimension of the goal — for example, "trend over time",
+          "breakdown by category", "outlier identification" — and flagged as a text question or a chart query.
+          The planner is required to cover every stated dimension; a warning is raised if any goes unaddressed.
+        </p>
+        <p>
+          You can also add supplementary context when entering a goal in the app — for example,
+          a known data quality issue, a field to prioritise, or a time period to focus on.
+          This context is passed directly to the planner alongside the goal and shapes the analytical
+          plan from the start.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Takes in</div>
+            Your goal statement, any supplementary context from the app, the dataset's column schema, and the matching playbooks
+          </div>
+          <div class="io-box">
+            <div class="io-label">Produces</div>
+            A structured list of questions with goal dimension tags and dependency links
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- EXECUTOR -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-exec">2</div>
+        <div>
+          <div class="stage-title">Executor</div>
+          <div class="stage-subtitle">Writes and runs Python for each question, then narrates the result</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          For each planned question, the executor decides whether it needs to run code or can
+          be answered directly from the schema. For code questions, it writes Python using pandas,
+          runs it in a sandboxed environment, captures the output, then calls a second model to
+          narrate the result in plain English.
+        </p>
+        <p>
+          Questions that can run independently execute in parallel. Questions that depend on
+          a prior result (e.g. "now break that down by region") run in sequence, with previous
+          results in context. This means a 10-question plan often runs in the time of 3–4 queries.
+        </p>
+        <p>
+          The narration — not the raw code output — is what flows into subsequent stages and
+          into the conversation history for follow-up questions.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Takes in</div>
+            The question list, the dataset, and a growing history of prior results
+          </div>
+          <div class="io-box">
+            <div class="io-label">Produces</div>
+            Per-question: code, raw output, plain-English narration, any charts generated
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- SYNTHESISER -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-synth">3</div>
+        <div>
+          <div class="stage-title">Synthesiser</div>
+          <div class="stage-subtitle">Turns individual query results into structured findings</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          The synthesiser reads all query results together and produces a set of findings —
+          each with a title, an interpretation in plain English, a confidence level (High / Medium / Low),
+          a sensitivity indicator, and supporting query references.
+        </p>
+        <p>
+          It works within constraints: findings must have distinct claims (no two findings may assert
+          the same relationship), magnitude words like "dominates" or "majority" require a percentage
+          to back them up, and any comparison across groups must note whether the groups are similar in size.
+          Findings are only generated for goal dimensions where the executor returned usable results.
+        </p>
+        <p>
+          The output also includes identified gaps — dimensions the planner intended to cover
+          but where the data wasn't sufficient — and two lists of suggested next steps: those
+          you can run immediately on the current dataset, and those that would need additional data.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Takes in</div>
+            All query narrations, the goal, playbook guidance, and a dimension coverage map
+          </div>
+          <div class="io-box">
+            <div class="io-label">Produces</div>
+            Structured findings with confidence levels, gaps identified, and next steps split by what's runnable now vs what needs more data
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- REVIEWER -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-review">4</div>
+        <div>
+          <div class="stage-title">Reviewer &amp; Revision Loop</div>
+          <div class="stage-subtitle">Checks every finding against the evidence; rewrites problems</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          Each finding is reviewed independently against the evidence from its cited queries.
+          The reviewer checks for a specific set of problems — false claims, unsupported magnitude words,
+          missing caveats, and known analytical traps — and raises typed flags when it finds them.
+        </p>
+        <p>
+          Flags that indicate a correctable error trigger a targeted revision: only the affected findings
+          are rewritten, not the whole synthesis. The revision loop runs a maximum of two rounds.
+          If a problem persists after two rounds, it remains flagged in the output with the overall
+          verdict downgraded accordingly.
+        </p>
+        <p>
+          Number-grounding — checking that a specific figure cited in a finding actually appears in
+          the query evidence — is done deterministically before the language model reviews anything.
+          This prevents the model from raising false alarms on numbers that are clearly present.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Takes in</div>
+            Each finding paired with its supporting query evidence
+          </div>
+          <div class="io-box">
+            <div class="io-label">Produces</div>
+            Typed flags per finding, a revision if needed, and an overall verdict (PASS / REVIEW / FAIL)
+          </div>
+        </div>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<!-- QUALITY CHECKS -->
+<section id="quality" class="section">
+  <h2>Built-in quality checks</h2>
+  <p>
+    The reviewer classifies every problem it finds into one of six types.
+    The type determines what happens next: correctable problems trigger a rewrite,
+    advisory problems are flagged without blocking.
+  </p>
+
+  <div class="flag-grid">
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ False Claim</div>
+      <p>The finding states a number or direction that contradicts the evidence. The finding is rewritten to reflect what the data actually shows.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Unsupported Magnitude</div>
+      <p>Words like "dominates" or "the majority" appear without a percentage to back them. The claim is requalified with the actual figures.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Missing Caveat</div>
+      <p>The conclusion is directionally correct but omits a material qualification — for example, comparing groups without noting very different group sizes.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Analytical Pitfall</div>
+      <p>A known statistical trap has been triggered — such as comparing rates across groups without accounting for composition differences.</p>
+    </div>
+    <div class="flag-card advisory">
+      <div class="flag-label">⚠ Data Quality Concern</div>
+      <p>The data limits confidence in the finding — for example, fewer than 15 records in a comparison group, or more than 10% missing values in a key field. Not correctable; flagged for the reader.</p>
+    </div>
+    <div class="flag-card advisory">
+      <div class="flag-label">⚠ Scope Gap</div>
+      <p>A dimension of the original goal was not addressed, typically because the data wasn't sufficient to support it. Flagged so the reader knows what was left out.</p>
+    </div>
+  </div>
+
+  <div class="revision-note">
+    <strong>Confidence is adjusted automatically after review.</strong>
+    Findings that were corrected for a False Claim or Pitfall are capped at Low confidence.
+    Findings with Unsupported Magnitude, Missing Caveat, or Data Quality concerns are capped at Medium.
+    High confidence is reserved for findings that passed review without correction.
+  </div>
+</section>
+
+<!-- EXAMPLE OUTPUT -->
+<section id="example" class="section">
+  <h2>Example output</h2>
+  <p>
+    This is the kind of finding the system produces — a single structured insight drawn from one goal dimension,
+    with confidence, caveats, and suggested next steps.
+  </p>
+
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-title">Weekend orders generate 34% higher average basket value</div>
+      <span class="confidence-badge conf-medium">Medium confidence</span>
+    </div>
+    <div class="finding-body">
+      <p>
+        Orders placed on Saturday and Sunday show a mean basket value of £47.20, compared to £35.10
+        on weekdays — a difference of 34%. This pattern holds consistently across all three product categories
+        and is not explained by differences in order volume (weekday orders are 2.4× more frequent,
+        so the weekend uplift is not a volume effect).
+      </p>
+      <div class="finding-meta">
+        <div class="meta-row">
+          <span class="meta-label">Caveat</span>
+          <span class="meta-value">Weekend group is smaller (1,204 orders vs 2,891 weekday). Pattern is consistent but based on a narrower sample.</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Sensitivity</span>
+          <span class="meta-value">Low — basket value is a derived field and does not contain personal data</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Next steps (now)</span>
+          <span class="meta-value">Investigate whether the weekend uplift varies by customer segment; break down by product category to identify which drives the difference</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Next steps (more data)</span>
+          <span class="meta-value">Compare against the equivalent period from last year to determine whether this pattern is seasonal or structural</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-step-demo">
+    <div class="next-step-demo-label">Next steps you can run now — click to analyse</div>
+    <div class="next-step-btns">
+      <div class="next-step-btn">Investigate whether the weekend uplift varies by customer segment or is uniform across the base</div>
+      <div class="next-step-btn">Break down the weekend basket value difference by product category to identify which category drives the uplift</div>
+    </div>
+    <p class="next-step-demo-note">
+      "Next steps now" appear as clickable buttons in the app. Clicking one pre-fills the goal and
+      runs the full pipeline automatically — no typing required. The new result stacks below the
+      previous one, so you can build up a chain of analyses without starting over.
+    </p>
+  </div>
+
+  <p class="finding-note">
+    Illustrative example. Confidence level, caveats, sensitivity indicator, and suggested next steps are
+    all generated by the system as part of the standard output structure — not added manually.
+    A full run typically produces 4–6 findings alongside identified gaps.
+  </p>
+</section>
+
+<!-- HOW IT RUNS -->
+<section id="runs" class="section">
+  <h2>Under the hood</h2>
+  <p>
+    Five components shape how the system works on a new dataset: a privacy-first local design,
+    sandboxed code execution, a data dictionary, a set of analytical playbooks, and a set of guardrails that
+    constrain what the language models are allowed to decide for themselves.
+  </p>
+
+  <div class="runs-grid">
+
+    <!-- PRIVACY BY DESIGN -->
+    <div class="runs-block">
+      <div class="runs-label">Privacy by design</div>
+      <div class="runs-content">
+        <h3>Your data and the AI models never leave your system</h3>
+        <p>
+          Most AI analysis tools work by sending your data to a remote server — the model runs in the cloud,
+          results come back, and your data has left your control. AI Analyst is built the other way round:
+          the language models are downloaded and run on your own hardware using Ollama, an open-source
+          local model runtime. No data is transmitted to an external API at any point.
+        </p>
+        <p>Everything stays on your machine:</p>
+        <ul class="guardrail-list">
+          <li>Your dataset — never uploaded or transmitted anywhere</li>
+          <li>Your goal text and any context entered in the app — processed only by the local model</li>
+          <li>All AI reasoning and generated code — runs entirely on local hardware</li>
+          <li>Results and findings — generated locally and displayed to you only</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- SANDBOXED EXECUTION -->
+    <div class="runs-block">
+      <div class="runs-label">Sandboxed execution</div>
+      <div class="runs-content">
+        <h3>Code runs in a restricted environment, not a general Python interpreter</h3>
+        <p>
+          The executor writes Python code and runs it to answer each analytical question. That code runs in a
+          restricted sandbox — not a general Python interpreter with access to your files or network:
+        </p>
+        <ul class="guardrail-list">
+          <li>
+            <span class="label">Data access.</span>
+            Only the specific dataset file is accessible to the executor. It cannot read other files on your system.
+          </li>
+          <li>
+            <span class="label">No network calls.</span>
+            The sandboxed execution context has no outbound network access.
+          </li>
+          <li>
+            <span class="label">Isolated queries.</span>
+            Each query runs independently — code from one question cannot affect another.
+          </li>
+          <li>
+            <span class="label">Blocked patterns.</span>
+            Known unsafe operations — writing files, making system calls, launching subprocesses — are intercepted before execution.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- DATA DICTIONARY -->
+    <div class="runs-block">
+      <div class="runs-label">Data dictionary</div>
+      <div class="runs-content">
+        <h3>Helping the system understand your data</h3>
+        <p>
+          To get started, drop your CSV file into the app. You can also provide a plain-English data
+          dictionary alongside it — a text file that describes what each column means, what categorical
+          values represent, and how fields relate to each other. If you don't have one, the system
+          generates one automatically from your column names and data types.
+        </p>
+        <p>
+          Providing your own dictionary gives the planner richer context: the difference between a raw
+          value and a pre-computed metric, known data quality issues, or which fields are sensitive.
+          This context is passed to the synthesiser, which uses it to qualify findings appropriately.
+        </p>
+        <p>
+          You can also add free-text context when entering a goal in the app — useful for
+          session-specific constraints, known caveats, or fields to prioritise that aren't
+          part of the standing dictionary. This is passed directly to the planner alongside
+          the goal.
+        </p>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- PLAYBOOKS -->
+    <div class="runs-block">
+      <div class="runs-label">Analytical playbooks</div>
+      <div class="runs-content">
+        <h3>Twelve analytical patterns, already built in</h3>
+        <p>
+          Twelve playbooks covering the most common analytical patterns are already included and
+          ready to use. Each one specifies when it applies, how to structure the analysis,
+          what pitfalls to avoid, and what the output should include. Think of them as the
+          organisation's analytical standards — encoded once and applied consistently.
+        </p>
+        <div class="playbook-pills">
+          <span class="playbook-pill">Trend Analysis</span>
+          <span class="playbook-pill">Group Comparison</span>
+          <span class="playbook-pill">Composition / Breakdown</span>
+          <span class="playbook-pill">Top-N Ranking</span>
+          <span class="playbook-pill">Distribution Analysis</span>
+          <span class="playbook-pill">Correlation Investigation</span>
+          <span class="playbook-pill">Hypothesis Testing</span>
+          <span class="playbook-pill">Anomaly / Outlier Detection</span>
+          <span class="playbook-pill">Cohort Analysis</span>
+          <span class="playbook-pill">Funnel / Conversion Analysis</span>
+          <span class="playbook-pill">Forecasting / Projection</span>
+          <span class="playbook-pill">Basket / Co-occurrence Analysis</span>
+        </div>
+        <p style="margin-top:0.75rem">
+          The planner doesn't apply all twelve to every goal. It retrieves the two or three most
+          relevant playbooks using semantic search against the goal statement, then uses them
+          to shape the analytical plan. A trend question triggers the Trend Analysis playbook;
+          a question about which category performs best triggers Group Comparison and Top-N Ranking.
+          Playbooks can be extended or customised without changing any code.
+        </p>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- GUARDRAILS -->
+    <div class="runs-block">
+      <div class="runs-label">Model freedom vs guardrails</div>
+      <div class="runs-content">
+        <h3>The language model reasons freely; critical operations are deterministic</h3>
+        <p>
+          The planner, synthesiser, and reviewer express themselves freely in natural language —
+          this is where the analytical reasoning happens. But several operations are handled
+          deterministically to prevent well-known failure modes:
+        </p>
+        <ul class="guardrail-list">
+          <li>
+            <span class="label">Question classification.</span>
+            Before asking the model whether a question needs code or text, pattern-matching rules
+            catch obvious cases — questions that start with "Plot…" or "What is the mean X for each Y?"
+            always go to code. This prevents the model from choosing to answer a calculation question
+            in text from memory.
+          </li>
+          <li>
+            <span class="label">Number grounding.</span>
+            Before the reviewer's language model can raise a False Claim flag, the system checks
+            deterministically whether the cited number actually appears in the query evidence.
+            If it does, the flag is suppressed — the LLM cannot override a passing deterministic check.
+          </li>
+          <li>
+            <span class="label">Code post-processors.</span>
+            Known bad code patterns are rewritten automatically after the executor generates them:
+            ratio-of-means calculations are converted to row-level ratios, year axes are cast to
+            integers, and escaped newline sequences are restored to real line breaks before execution.
+          </li>
+          <li>
+            <span class="label">Bounded revision.</span>
+            The revision loop runs a maximum of two rounds. A merge guard ensures the model can
+            only rewrite findings it was explicitly asked to revise — it cannot silently alter
+            correct findings during a revision pass.
+          </li>
+        </ul>
+        <p style="margin-top:0.75rem">
+          The design principle is: let the model do what language models are good at (reasoning,
+          writing, identifying patterns), and use deterministic rules for anything where a silent
+          wrong answer is worse than an explicit constraint.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  AI Analyst &nbsp;·&nbsp; Runs locally via Ollama &nbsp;·&nbsp; Built with Python, ChromaDB, and Streamlit
+</footer>
+
+</body>
+</html>

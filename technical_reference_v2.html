@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic Data Analyst — Technical Reference</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0d1117;
+      --bg2:        #161b22;
+      --bg3:        #21262d;
+      --border:     #30363d;
+      --text:       #e6edf3;
+      --muted:      #8b949e;
+      --link:       #58a6ff;
+
+      --planner:    #388bfd;
+      --executor:   #3fb950;
+      --synth:      #f78166;
+      --reviewer:   #bc8cff;
+      --rag:        #ffa657;
+      --config:     #79c0ff;
+
+      --code-bg:    #161b22;
+      --code-border:#30363d;
+
+      --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; font-size: 15px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ---- SIDEBAR ---- */
+    #sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0 40px;
+    }
+
+    #sidebar .logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    #sidebar .logo .badge {
+      display: inline-block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    #sidebar .logo h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    #sidebar nav a {
+      display: block;
+      padding: 5px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    #sidebar nav a:hover {
+      color: var(--text);
+      border-left-color: var(--border);
+    }
+
+    #sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    #sidebar nav a.active {
+      color: var(--link);
+      border-left-color: var(--link);
+    }
+
+    /* ---- MAIN ---- */
+    main {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 56px 80px;
+      max-width: 960px;
+    }
+
+    /* ---- HEADINGS ---- */
+    h1.page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 48px 0 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 10px;
+    }
+
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 20px 0 8px;
+    }
+
+    p { margin-bottom: 12px; font-size: 14px; color: #c9d1d9; }
+
+    /* ---- MODULE PILL ---- */
+    .pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    .pill-planner  { background: rgba(56,139,253,0.15); color: var(--planner);  border: 1px solid rgba(56,139,253,0.3); }
+    .pill-executor { background: rgba(63,185,80,0.15);  color: var(--executor); border: 1px solid rgba(63,185,80,0.3); }
+    .pill-synth    { background: rgba(247,129,102,0.15);color: var(--synth);    border: 1px solid rgba(247,129,102,0.3); }
+    .pill-reviewer { background: rgba(188,140,255,0.15);color: var(--reviewer); border: 1px solid rgba(188,140,255,0.3); }
+    .pill-rag      { background: rgba(255,166,87,0.15); color: var(--rag);      border: 1px solid rgba(255,166,87,0.3); }
+    .pill-config   { background: rgba(121,192,255,0.15);color: var(--config);   border: 1px solid rgba(121,192,255,0.3); }
+
+    /* ---- CODE BLOCKS ---- */
+    pre, code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+
+    code {
+      background: var(--bg3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffa657;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      line-height: 1.55;
+      margin: 12px 0 20px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .kw   { color: #ff7b72; }
+    .fn   { color: #d2a8ff; }
+    .str  { color: #a5d6ff; }
+    .cmt  { color: #8b949e; font-style: italic; }
+    .typ  { color: #ffa657; }
+    .num  { color: #79c0ff; }
+    .op   { color: #ff7b72; }
+
+    /* ---- DIAGRAM WRAPPERS ---- */
+    .diagram-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      margin: 20px 0 28px;
+      overflow-x: auto;
+    }
+
+    /* ---- TABLES ---- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 12px 0 24px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: #c9d1d9;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody td:first-child { font-family: var(--font-mono); color: #ffa657; }
+
+    tbody tr:hover td { background: var(--bg2); }
+
+    /* ---- CALLOUT BOXES ---- */
+    .callout {
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      border-left: 3px solid;
+    }
+
+    .callout.note   { background: rgba(56,139,253,0.08); border-color: var(--planner); color: #c9d1d9; }
+    .callout.warn   { background: rgba(255,166,87,0.08); border-color: var(--rag);     color: #c9d1d9; }
+    .callout.design { background: rgba(188,140,255,0.08); border-color: var(--reviewer); color: #c9d1d9; }
+    .callout.inactive { background: rgba(139,148,158,0.08); border-color: var(--muted); color: #c9d1d9; }
+
+    .callout strong { color: var(--text); }
+
+    /* ---- FLAG TABLE ---- */
+    .flag-correctable   { color: var(--synth); font-weight: 600; }
+    .flag-noncorrectable { color: var(--muted); font-weight: 600; }
+
+    /* ---- SIGNATURE BLOCK ---- */
+    .sig {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 10px 0 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .sig .sig-fn { color: #d2a8ff; font-weight: 600; }
+    .sig .sig-param { color: #ffa657; }
+    .sig .sig-type { color: var(--muted); font-size: 12px; }
+    .sig .sig-arrow { color: var(--executor); }
+    .sig .sig-return { color: var(--executor); font-weight: 600; }
+
+    /* ---- DEPENDENCY WAVE VIZ ---- */
+    .wave-grid {
+      display: flex;
+      gap: 12px;
+      margin: 16px 0 24px;
+      flex-wrap: wrap;
+    }
+
+    .wave-col {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 120px;
+    }
+
+    .wave-col h5 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .wave-query {
+      display: block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--executor);
+      margin-bottom: 4px;
+    }
+
+    .wave-arrow {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      color: var(--muted);
+      padding-top: 24px;
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ---- MERMAID OVERRIDE ---- */
+    .mermaid { font-family: var(--font-sans) !important; }
+
+    /* ---- SCROLLBAR ---- */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ======================================================= SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="badge">v9 · local · privacy-preserving</div>
+    <h1>Agentic Data Analyst<br>Technical Reference</h1>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#overview">System Design</a>
+    <a href="#pipeline-flow">Pipeline Flow</a>
+
+    <div class="section-label">Modules</div>
+    <a href="#mod-planner">planner.py</a>
+    <a href="#mod-executor">executor_loop.py</a>
+    <a href="#mod-synthesiser">synthesiser.py</a>
+    <a href="#mod-reviewer">reviewer.py</a>
+    <a href="#mod-agent">agent.py</a>
+    <a href="#mod-pipeline">pipeline.py</a>
+    <a href="#display-helpers">Display Helpers</a>
+
+    <div class="section-label">UI Layer</div>
+    <a href="#upload-flow">Dataset Upload</a>
+    <a href="#print-interceptor">DataFrame Rendering</a>
+    <a href="#next-step-ui">Next Steps &amp; Stacking</a>
+
+    <div class="section-label">Data Structures</div>
+    <a href="#ds-planresult">PlanResult</a>
+    <a href="#ds-executionresult">ExecutionResult</a>
+    <a href="#ds-synthesisresult">SynthesisResult</a>
+    <a href="#ds-reviewresult">ReviewResult</a>
+
+    <div class="section-label">Design</div>
+    <a href="#rag-design">RAG Architecture</a>
+    <a href="#wave-scheduler">Wave Scheduler</a>
+    <a href="#revision-loop">Revision Loop</a>
+    <a href="#reviewer-flags">Reviewer Flags</a>
+    <a href="#config-ref">Config Reference</a>
+
+    <div class="section-label">Data &amp; Logs</div>
+    <a href="#datasets">Datasets &amp; Upload</a>
+    <a href="#logging">Logging</a>
+
+    <div class="section-label">Entry Points</div>
+    <a href="#entry-points">CLI &amp; Scripts</a>
+    <a href="#deps">Dependencies</a>
+  </nav>
+</aside>
+
+<!-- ======================================================= MAIN -->
+<main>
+
+  <h1 class="page-title">Agentic Data Analyst — Technical Reference</h1>
+  <p class="page-subtitle">Architecture, function signatures, data structures, and design decisions. For contributors and integrators.</p>
+
+  <!-- ======================================================= OVERVIEW -->
+  <h2 id="overview">System Design</h2>
+
+  <p>A local-first multi-stage agentic pipeline for structured data analysis. Takes a natural-language analytical goal and a CSV; returns a structured brief with findings, confidence levels, and caveats — all computed on-device using Ollama-served LLMs. No data leaves the machine.</p>
+
+  <p>The system uses four specialised LLM roles (planner, executor, synthesiser, reviewer) chained through typed dataclass contracts. Each stage can fail independently; the pipeline continues where possible and logs everything to JSONL.</p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart TD
+    CSV["CSV Dataset\n+ Data Dictionary"] --> RAG["Vector Stores\nChromaDB · mxbai-embed-large"]
+    GOAL["Natural-language\nAnalytical Goal"] --> PL
+    CTX["dataset_context\n(optional free-text:\ndomain caveats, population notes,\ncollection biases)"]
+
+    CTX -.->|"injected into\nplanner prompt"| PL
+    CTX -.->|"injected into\nsynth prompt"| SY
+
+    RAG -->|"retrieve_playbooks(k=3)"| PL
+    RAG -->|"retrieve_context_weighted_chroma()"| EX
+
+    PL["PLANNER\ngpt-oss:20b\ngenerate_plan()"]
+    EX["EXECUTOR LOOP\ngpt-oss:20b\nexecute_plan() → DAG waves\nask_agent_xml() per query"]
+    SY["SYNTHESISER\ngpt-oss:20b\nsynthesize()"]
+    RV["REVIEWER\ngpt-oss:20b\nreview() · per-finding parallel"]
+    RL{{"Correctable\nflags?"}}
+    OUT["PipelineResult\nPASS / REVIEW / FAIL"]
+
+    PL -->|"PlanResult\n5–8 queries + dimensions"| EX
+    EX -->|"ExecutionResult\nper-query narrations + charts"| SY
+    SY -->|"SynthesisResult\nfindings + caveats + gaps"| RV
+    RV -->|"ReviewResult"| RL
+    RL -->|"Yes · up to 2 rounds"| SY
+    RL -->|"No"| OUT
+
+    style PL  fill:#0d2b4e,stroke:#388bfd,color:#e6edf3
+    style EX  fill:#0d2b18,stroke:#3fb950,color:#e6edf3
+    style SY  fill:#2b1a14,stroke:#f78166,color:#e6edf3
+    style RV  fill:#1d1530,stroke:#bc8cff,color:#e6edf3
+    style RAG fill:#2b1e0a,stroke:#ffa657,color:#e6edf3
+    style CTX fill:#1a1a2e,stroke:#444,color:#8b949e
+    style RL  fill:#21262d,stroke:#30363d,color:#e6edf3
+    style OUT fill:#161b22,stroke:#30363d,color:#8b949e
+    </div>
+  </div>
+
+  <div class="callout design">
+    <strong>Key invariants</strong><br>
+    Stages communicate only through typed dataclasses — no shared mutable state. Each stage receives a complete snapshot of prior stage output. The pipeline logs a full JSONL record regardless of stage outcome, enabling offline replay and evaluation.
+  </div>
+
+  <h3>Q&amp;A Tab — Classifier Path</h3>
+
+  <p>The Q&amp;A tab (single free-form question mode) follows a different path — it does <em>not</em> invoke the planner, synthesiser, or reviewer. Instead, it uses a dedicated classifier model to decide how to answer before calling the executor.</p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart LR
+    Q["User question\n(free-form, Q&A tab)"] --> PRE
+
+    PRE["Pre-rules\n(heuristic fast-path)"]
+    PRE -->|"question-form command\nor last action was code"| CODE["expected_action = code"]
+    PRE -->|"ambiguous"| CL
+
+    CL["CLASSIFIER\nqwen2.5-coder:14b\nclassify_need_for_code()\n33/34 accuracy"]
+    CL -->|"&quot;code&quot;"| CODE
+    CL -->|"&quot;text&quot;"| TEXT["expected_action = text"]
+
+    CODE --> AX["ask_agent_xml()\nexpected_action passed in\nRAG context retrieved\ncode executed + narrated"]
+    TEXT --> AX
+
+    AX --> UI["Streamlit UI\nnarration primary\nraw output in expander if ≥ 3 lines"]
+
+    style CL   fill:#1d1530,stroke:#bc8cff,color:#e6edf3
+    style PRE  fill:#21262d,stroke:#30363d,color:#8b949e
+    style CODE fill:#0d2b18,stroke:#3fb950,color:#e6edf3
+    style TEXT fill:#0d2b18,stroke:#3fb950,color:#e6edf3
+    style AX   fill:#0d2b18,stroke:#3fb950,color:#e6edf3
+    </div>
+  </div>
+
+  <div class="callout note">
+    <strong>Classifier is Q&amp;A tab only.</strong> The pipeline tab (planner → executor → synthesiser → reviewer) bypasses the classifier entirely — the executor always receives <code>expected_action="code"</code> directly. Classifier regressions are only visible via <code>python validation_itunes_v2.py</code> or the Q&amp;A tab, not in CORGI pipeline runs. The classifier model (<code>CLASSIFIER_MODEL</code>) is hardwired at the <code>classify_need_for_code()</code> call site and is not overridable by the executor model selector in the Streamlit sidebar.
+  </div>
+
+  <!-- ======================================================= PIPELINE FLOW -->
+  <h2 id="pipeline-flow">Pipeline Flow — Pseudocode</h2>
+
+<pre><code><span class="kw">def</span> <span class="fn">run_analysis</span>(<span class="typ">goal</span>: str, <span class="typ">df</span>: DataFrame,
+               <span class="typ">collections_config</span>: dict, <span class="typ">config</span>: PipelineConfig)
+               <span class="op">-&gt;</span> PipelineResult:
+
+  <span class="cmt"># 1. Retrieve analytical playbooks from vector store</span>
+  playbooks = <span class="fn">retrieve_playbooks</span>(goal, k=config.playbook_k)
+
+  <span class="cmt"># 2. Planner: decompose goal into ordered queries</span>
+  plan = <span class="fn">generate_plan</span>(goal, df, playbooks, model=config.planner_model)
+  <span class="kw">if not</span> plan.success: <span class="kw">return</span> PipelineResult(failed_stage=<span class="str">"plan"</span>)
+
+  <span class="cmt"># 3. Executor: run queries in dependency waves</span>
+  exec_result = <span class="fn">execute_plan</span>(plan.plan, df, collections_config,
+                             model=config.executor_model,
+                             max_workers=config.executor_max_workers)
+  <span class="cmt"># 4. Build coverage map: which goal dimensions were answered</span>
+  coverage_map = <span class="fn">_build_coverage_map</span>(plan, exec_result)
+
+  <span class="cmt"># 5. Synthesiser: ground findings in executor evidence</span>
+  synthesis = <span class="fn">synthesise</span>(goal, exec_result, playbooks, coverage_map,
+                         model=config.synthesiser_model)
+  <span class="kw">if not</span> synthesis.success: <span class="kw">return</span> PipelineResult(failed_stage=<span class="str">"synthesise"</span>)
+
+  <span class="cmt"># 6. Reviewer + revision loop (max 2 rounds)</span>
+  review = <span class="fn">review</span>(synthesis, exec_result, playbooks, model=config.reviewer_model)
+  <span class="kw">for</span> round <span class="kw">in</span> <span class="fn">range</span>(config.max_revision_rounds):
+    <span class="kw">if not</span> <span class="fn">_has_correctable_flags</span>(review): <span class="kw">break</span>
+    synthesis = <span class="fn">_targeted_resynthesize</span>(synthesis, review, exec_result)
+    review    = <span class="fn">review</span>(synthesis, exec_result, playbooks)
+
+  <span class="cmt"># 7. Confidence post-adjustment: cap based on unresolved flags</span>
+  synthesis = <span class="fn">_apply_confidence_adjustments</span>(synthesis, review)
+
+  <span class="cmt"># 8. Overall status + vacuous-PASS guard</span>
+  status = review.overall_assessment   <span class="cmt"># "PASS" | "REVIEW" | "FAIL"</span>
+  <span class="kw">if</span> status == <span class="str">"PASS"</span> <span class="kw">and</span> exec_result.pass_count &lt; <span class="num">2</span>: status = <span class="str">"REVIEW"</span>
+
+  <span class="fn">_log_pipeline_result</span>(result)   <span class="cmt"># JSONL → pipeline_logs/</span>
+  <span class="kw">return</span> PipelineResult(overall_status=status, ...)</code></pre>
+
+  <!-- ======================================================= PLANNER -->
+  <h2 id="mod-planner">
+    <span class="pill pill-planner">planner.py</span>
+    Planner
+  </h2>
+
+  <p>Decomposes a natural-language goal into an ordered analysis plan. Injects dataset schema and retrieved playbooks. Outputs structured JSON with goal dimensions and per-query dependency links.</p>
+
+  <div class="sig">
+    <span class="sig-fn">generate_plan</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">goal</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">df</span>: <span class="sig-type">pd.DataFrame</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">dataset_name</span>: <span class="sig-type">str = "dataset"</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">model_name</span>: <span class="sig-type">str = PLANNER_MODEL</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">playbook_k</span>: <span class="sig-type">int = 3</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">dataset_context</span>: <span class="sig-type">str = ""</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">verbose</span>: <span class="sig-type">bool = False</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">PlanResult</span>
+  </div>
+
+<pre><code><span class="cmt"># Internal flow</span>
+schema  = <span class="fn">get_schema_with_quality</span>(df, dataset_name)   <span class="cmt"># column stats + null rates</span>
+playbooks = <span class="fn">retrieve_playbooks</span>(goal, k=playbook_k)     <span class="cmt"># from chroma_persist_playbooks</span>
+prompt  = PLANNER_PROMPT.format(goal, schema, playbooks, context)
+
+response = ollama.Client.<span class="fn">chat</span>(model, messages=[...], options={<span class="str">"temperature"</span>: <span class="num">0.0</span>, <span class="str">"think"</span>: <span class="num">False</span>})
+parsed  = <span class="fn">_parse_json_response</span>(response)   <span class="cmt"># strips markdown fences, finds outermost {}</span>
+
+<span class="kw">return</span> PlanResult(
+  quality_issues  = parsed[<span class="str">"quality_issues"</span>],   <span class="cmt"># list[str]</span>
+  goal_dimensions = parsed[<span class="str">"goal_dimensions"</span>],   <span class="cmt"># list[str], 2–5 items</span>
+  plan            = parsed[<span class="str">"plan"</span>],              <span class="cmt"># list[{question, rationale, depends_on, covers_dimension}]</span>
+)</code></pre>
+
+  <h4>Prompt Rules Enforced</h4>
+  <table>
+    <thead><tr><th>Rule</th><th>Constraint</th></tr></thead>
+    <tbody>
+      <tr><td>Direct calculation</td><td>Single aggregation over multi-step averaging</td></tr>
+      <tr><td>Row-level correlation</td><td>Individual rows only; no group-means regression</td></tr>
+      <tr><td>Group comparisons</td><td>Must include count per group alongside metric</td></tr>
+      <tr><td>Proportions</td><td>mean(A/B) not mean(A)/mean(B)</td></tr>
+      <tr><td>Dimension coverage</td><td>Every goal_dimension must appear as covers_dimension in ≥1 query</td></tr>
+      <tr><td>Chart trigger</td><td>Chart queries must start with "Plot", "Draw", or "Create a chart of"</td></tr>
+      <tr><td>No SQL</td><td>Questions are natural language only; executor writes code</td></tr>
+      <tr><td>SO WHAT</td><td>Each query must be framed toward an actionable analytical implication, not just description — the plan should reveal something the user can act on</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Display Helper: <code>format_plan_as_text()</code></h4>
+
+  <div class="sig">
+    <span class="sig-fn">format_plan_as_text</span>(<span class="sig-param">result</span>: <span class="sig-type">PlanResult</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+  <p>Returns a human-readable plan summary for CLI output and logging: model, timing, playbooks used, quality issues, goal dimensions, and each query with its rationale and dependency. Used by <code>run_corgi_pipeline.py</code> with <code>--verbose</code>.</p>
+
+  <!-- ======================================================= EXECUTOR -->
+  <h2 id="mod-executor">
+    <span class="pill pill-executor">executor_loop.py</span>
+    Executor Loop
+  </h2>
+
+  <p>Runs the analysis plan against the dataset. Groups queries into dependency waves using <code>depends_on</code> fields; within each wave, queries run concurrently via <code>ThreadPoolExecutor</code>. Conversation history is updated between waves so dependent queries see prior results.</p>
+
+  <div class="sig">
+    <span class="sig-fn">execute_plan</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">plan</span>: <span class="sig-type">list[dict]</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">df</span>: <span class="sig-type">pd.DataFrame</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">collections_config</span>: <span class="sig-type">dict | None</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">model_name</span>: <span class="sig-type">str = MODEL_NAME</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">max_workers</span>: <span class="sig-type">int = EXECUTOR_MAX_WORKERS</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">ExecutionResult</span>
+  </div>
+
+  <h3 id="wave-scheduler">Wave Scheduler</h3>
+
+  <p>Queries are sorted into execution waves: a query enters wave N+1 once all its <code>depends_on</code> indices have completed in earlier waves.</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">_build_waves</span>(plan: list[dict]) <span class="op">-&gt;</span> list[list[int]]:
+  assigned = set()
+  waves = []
+  <span class="kw">while</span> len(assigned) &lt; len(plan):
+    wave = [
+      i <span class="kw">for</span> i, step <span class="kw">in</span> <span class="fn">enumerate</span>(plan)
+      <span class="kw">if</span> i <span class="kw">not in</span> assigned
+         <span class="kw">and</span> <span class="fn">all</span>(d <span class="kw">in</span> assigned <span class="kw">for</span> d <span class="kw">in</span> <span class="fn">normalise_deps</span>(step[<span class="str">"depends_on"</span>]))
+    ]
+    <span class="kw">if not</span> wave: wave = [<span class="fn">first_unassigned</span>()]  <span class="cmt"># cycle-break: append one</span>
+    waves.append(wave); assigned.update(wave)
+  <span class="kw">return</span> waves</code></pre>
+
+  <h4>Wave Execution Example</h4>
+  <div class="wave-grid">
+    <div class="wave-col">
+      <h5>Wave 0 · parallel</h5>
+      <span class="wave-query">Q0 depends_on: null</span>
+      <span class="wave-query">Q1 depends_on: null</span>
+      <span class="wave-query">Q2 depends_on: null</span>
+    </div>
+    <div class="wave-arrow">→</div>
+    <div class="wave-col">
+      <h5>Wave 1 · parallel</h5>
+      <span class="wave-query">Q3 depends_on: 0</span>
+      <span class="wave-query">Q4 depends_on: 1</span>
+    </div>
+    <div class="wave-arrow">→</div>
+    <div class="wave-col">
+      <h5>Wave 2 · single</h5>
+      <span class="wave-query">Q5 depends_on: [3,4]</span>
+    </div>
+  </div>
+
+  <p>After each wave completes, results are appended to <code>conversation_history</code> as narrated summaries (not raw code). The next wave's queries receive this updated history via <code>ask_agent_xml()</code>.</p>
+
+  <h4>Per-Query Result Schema</h4>
+  <table>
+    <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>index</td><td>int</td><td>0-based position in plan</td></tr>
+      <tr><td>question</td><td>str</td><td>Natural-language query</td></tr>
+      <tr><td>action</td><td>"code" | "text" | "error"</td><td>What the executor chose to do</td></tr>
+      <tr><td>generated_code</td><td>str</td><td>Python code produced (code action only)</td></tr>
+      <tr><td>result_text</td><td>str</td><td>Narrated answer or error message</td></tr>
+      <tr><td>stdout</td><td>str</td><td>Raw print output from code execution</td></tr>
+      <tr><td>frames</td><td>list[DataFrame]</td><td>DataFrames/Series captured by the print interceptor — used by app.py for st.dataframe() rendering</td></tr>
+      <tr><td>chart_path</td><td>str | None</td><td>Path to PNG if matplotlib chart was saved</td></tr>
+      <tr><td>success</td><td>bool</td><td>True if query produced usable output</td></tr>
+      <tr><td>execution_time_s</td><td>float</td><td>Wall time for this query</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <strong>No retry on code execution failure.</strong> Deliberate design decision — with local models, same-model retries rarely produce different code. A fallback model (<code>EXECUTOR_FALLBACK_MODEL</code>) is a genuinely different attempt. SystemExit from generated code is caught explicitly before the generic Exception handler so <code>sys.exit()</code> calls become a failed query result rather than a pipeline crash.
+  </div>
+
+  <h4>Single-Query Execution: <code>_execute_one()</code></h4>
+  <p>The unit of work submitted to each <code>ThreadPoolExecutor</code> future. Takes a plan step and returns a fully populated result dict. Catches <code>BaseException</code> (not just <code>Exception</code>) so any exception — including <code>SystemExit</code>, <code>KeyboardInterrupt</code>, and <code>GeneratorExit</code> — becomes a failed query result rather than escaping to the wave loop.</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">_execute_one</span>(i, step, df, model_name, collections_config,
+                conversation_history, charts_dir, timestamp) <span class="op">-&gt;</span> dict:
+
+  <span class="kw">try</span>:
+    result = <span class="fn">ask_agent_xml</span>(
+      query=step[<span class="str">"question"</span>], df=df, model_name=model_name,
+      collections=collections_config,
+      conversation_history=<span class="fn">list</span>(conversation_history),  <span class="cmt"># snapshot — not live ref</span>
+    )
+  <span class="kw">except</span> BaseException <span class="kw">as</span> e:
+    <span class="kw">return</span> {<span class="str">"success"</span>: False, <span class="str">"error"</span>: <span class="fn">str</span>(e), ...}
+
+  <span class="cmt"># action == "text":  result_text = content; success = bool(content)</span>
+  <span class="cmt"># action == "code":  run exec_result["ok"]; save chart if figure_bytes present</span>
+  <span class="cmt"># action == "error": success = False</span>
+  <span class="cmt"># frames: list of DataFrames captured by _sandboxed_print, propagated from run_sandboxed()</span>
+
+  result_dict[<span class="str">"_raw_result"</span>] = result  <span class="cmt"># stripped after wave completes</span>
+  <span class="kw">return</span> result_dict</code></pre>
+
+  <!-- ======================================================= SYNTHESISER -->
+  <h2 id="mod-synthesiser">
+    <span class="pill pill-synth">synthesiser.py</span>
+    Synthesiser
+  </h2>
+
+  <p>Converts executor query results into a structured analytical brief. Each finding must cite the executor query indices that support it. A coverage map injected into the prompt prevents findings from being written for failed or missing dimensions.</p>
+
+  <div class="sig">
+    <span class="sig-fn">synthesise</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">goal</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">exec_result</span>: <span class="sig-type">ExecutionResult</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">playbook_texts</span>: <span class="sig-type">list[str]</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">model_name</span>: <span class="sig-type">str = PLANNER_MODEL</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">dataset_context</span>: <span class="sig-type">str = ""</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">coverage_map_block</span>: <span class="sig-type">str = ""</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">verbose</span>: <span class="sig-type">bool = False</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">SynthesisResult</span>
+  </div>
+
+  <h4>Finding Schema</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>title</td><td>str</td><td>Short headline (≤ 10 words)</td></tr>
+      <tr><td>interpretation</td><td>str</td><td>2–4 sentence finding grounded in evidence</td></tr>
+      <tr><td>confidence</td><td>"HIGH" | "MEDIUM" | "LOW"</td><td>Synthesiser's stated certainty</td></tr>
+      <tr><td>supporting_queries</td><td>list[int]</td><td>0-based indices into ExecutionResult.query_results</td></tr>
+      <tr><td>caveats</td><td>list[str]</td><td>Material qualifications to the interpretation</td></tr>
+      <tr><td>sensitivity</td><td>str | None</td><td>One sentence: would conclusion hold if missing data were biased?</td></tr>
+      <tr><td>chart_ref</td><td>int | None</td><td>Index of a query that produced a relevant chart</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Post-processing: <code>calibrate_language()</code></h4>
+
+  <div class="sig">
+    <span class="sig-fn">calibrate_language</span>(<span class="sig-param">synthesis</span>: <span class="sig-type">SynthesisResult</span>, <span class="sig-param">exec_result</span>: <span class="sig-type">ExecutionResult</span>) <span class="sig-arrow">→</span> <span class="sig-return">SynthesisResult</span>
+  </div>
+  <p>Deterministic post-pass over all findings. Replaces unsupported superlatives ("dominates", "overwhelmingly", "almost all", "vast majority") with calibrated language unless a confirming percentage literally appears in the cited query output. Uses <code>_has_majority_evidence()</code> (regex check on evidence text) and <code>_has_any_number()</code> as helpers. Runs inside <code>synthesise()</code> after the LLM call, before the result is returned to the pipeline.</p>
+
+  <h4>Helper: <code>extract_pitfalls()</code></h4>
+
+  <div class="sig">
+    <span class="sig-fn">extract_pitfalls</span>(<span class="sig-param">playbook_texts</span>: <span class="sig-type">list[str]</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+  <p>Extracts the <code>Pitfalls:</code> block from each playbook and returns a formatted checklist string. Called by both the synthesiser (injected into the synthesis prompt) and the reviewer (injected into each per-finding review prompt), so both stages see the same analytical trap warnings.</p>
+
+  <h4>Helper: <code>format_prior_context()</code></h4>
+
+  <div class="sig">
+    <span class="sig-fn">format_prior_context</span>(<span class="sig-param">synthesis</span>: <span class="sig-type">SynthesisResult</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+  <p>Produces a compact summary of a completed synthesis (~15 lines): headline finding, per-finding title + confidence + first sentence, and identified gaps. Designed to be injected as context when running a follow-up analysis so the model is aware of what the prior run found.</p>
+
+  <div class="callout inactive">
+    <strong>Not active in the Streamlit pipeline.</strong> Prior-context injection was tested and reverted — it made follow-up quality worse in practice. The function remains in <code>synthesiser.py</code> and is used by <code>test_followup_quality.py --with-context</code> for A/B comparison testing only. It is not called from <code>app.py</code>.
+  </div>
+
+  <!-- ======================================================= REVIEWER -->
+  <h2 id="mod-reviewer">
+    <span class="pill pill-reviewer">reviewer.py</span>
+    Reviewer
+  </h2>
+
+  <p>Reviews the synthesis against raw executor evidence. Runs one LLM call per finding concurrently, plus deterministic pre-checks. Returns typed flags per finding; correctable flags trigger the revision loop in <code>pipeline.py</code>.</p>
+
+  <div class="sig">
+    <span class="sig-fn">review</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">synthesis</span>: <span class="sig-type">SynthesisResult</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">exec_result</span>: <span class="sig-type">ExecutionResult</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">playbook_texts</span>: <span class="sig-type">list[str]</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">model_name</span>: <span class="sig-type">str = PLANNER_MODEL</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">verbose</span>: <span class="sig-type">bool = False</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">ReviewResult</span>
+  </div>
+
+  <h3 id="reviewer-flags">Reviewer Flag Schema</h3>
+
+  <table>
+    <thead><tr><th>Type</th><th>Meaning</th><th>Correctable</th><th>Confidence cap</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="flag-correctable">FALSE_CLAIM</span></td>
+        <td>Stated X; evidence says Y or is absent</td>
+        <td>Yes</td><td>→ LOW</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">UNSUPPORTED_MAGNITUDE</span></td>
+        <td>Direction right; "dominates/majority" not backed by numbers</td>
+        <td>Yes</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">MISSING_CAVEAT</span></td>
+        <td>Conclusion sound; material qualification absent. Triggered by: comparing groups without noting size difference; stating statistical significance without reporting effect size; stating a projection or forecast without conditional language or a confidence range</td>
+        <td>Yes</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">PITFALL</span></td>
+        <td>Known trap triggered: Simpson's paradox, base rate, ecological fallacy, etc.</td>
+        <td>Yes</td><td>→ LOW</td>
+      </tr>
+      <tr>
+        <td><span class="flag-noncorrectable">DQ_CONCERN</span></td>
+        <td>Data quality limits finding (&lt;15 records or &gt;10% null). Not a synthesiser error.</td>
+        <td>No</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-noncorrectable">SCOPE_GAP</span></td>
+        <td>Goal aspect unaddressed; needs new executor queries</td>
+        <td>No</td><td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Overall Assessment Logic</h4>
+<pre><code><span class="kw">if</span> <span class="fn">any</span>(correctable_flags): assessment = <span class="str">"FAIL"</span>   <span class="cmt"># triggers revision loop</span>
+<span class="kw">elif</span> <span class="fn">any</span>(non_correctable_flags): assessment = <span class="str">"REVIEW"</span>  <span class="cmt"># acknowledged limitations</span>
+<span class="kw">else</span>: assessment = <span class="str">"PASS"</span></code></pre>
+
+  <h4>Automated Pre-Checks: <code>run_automated_checks()</code></h4>
+
+  <div class="sig">
+    <span class="sig-fn">run_automated_checks</span>(<span class="sig-param">synthesis</span>: <span class="sig-type">SynthesisResult</span>, <span class="sig-param">exec_result</span>: <span class="sig-type">ExecutionResult</span>) <span class="sig-arrow">→</span> <span class="sig-return">dict</span>
+  </div>
+  <p>Runs five deterministic checks before the LLM review. Results are stored in <code>ReviewResult.automated_checks</code> and logged per run. A passing number-grounding check on a finding suppresses any LLM <code>FALSE_CLAIM</code> for that finding — deterministic takes precedence.</p>
+  <table>
+    <thead><tr><th>Check key</th><th>What it verifies</th></tr></thead>
+    <tbody>
+      <tr><td>all_have_confidence</td><td>Every finding has HIGH / MEDIUM / LOW</td></tr>
+      <tr><td>valid_query_refs</td><td>All supporting_queries indices exist in exec_result</td></tr>
+      <tr><td>all_results_cited</td><td>Every succeeded executor query is cited by ≥1 finding</td></tr>
+      <tr><td>no_orphan_findings</td><td>No finding has empty supporting_queries</td></tr>
+      <tr><td>number_grounding</td><td>Numbers in interpretations literally appear in cited query output (reads full untruncated result_text)</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Per-Finding LLM Review: <code>_review_single_finding()</code></h4>
+  <p>The reviewer runs one LLM call per finding, concurrently via <code>ThreadPoolExecutor</code> — the same wave pattern as the executor. Each call receives only that finding's evidence block (full char budget, no truncation pressure from other findings).</p>
+
+<pre><code><span class="cmt"># reviewer.py — review() orchestration</span>
+failed_block = <span class="fn">_format_failed_queries_block</span>(exec_result)
+pitfalls     = <span class="fn">extract_pitfalls</span>(playbook_texts)
+
+futures = {}
+<span class="kw">with</span> ThreadPoolExecutor() <span class="kw">as</span> pool:
+  <span class="kw">for</span> idx, finding <span class="kw">in</span> <span class="fn">enumerate</span>(synthesis.findings):
+    fut = pool.<span class="fn">submit</span>(_review_single_finding,
+                       idx, finding, all_findings,
+                       goal, failed_block, pitfalls,
+                       exec_result, model_name)
+    futures[fut] = idx
+
+<span class="cmt"># Each call returns: (flag_entry_dict, raw_response, error_str)</span>
+<span class="cmt"># flag_entry: {finding_index, flags: [{type, detail}], reviewer_note}</span></code></pre>
+
+  <p>After all per-finding calls complete, <code>_suppress_false_claims_where_grounded()</code> runs before the overall assessment is derived. It suppresses LLM <code>FALSE_CLAIM</code> flags where the deterministic number-grounding check passed — but only for purely numeric formatting claims. Directional and categorical FALSE_CLAIMs (e.g. "X is the largest category" when Y is actually larger) are preserved from suppression even when the cited number grounds, detected via <code>_is_directional_false_claim()</code> and <code>_DIRECTIONAL_KEYWORDS_RE</code>. <code>_compute_overall_assessment()</code> then derives PASS / REVIEW / FAIL from the merged flag set.</p>
+
+  <h3 id="revision-loop">Revision Loop</h3>
+<pre><code><span class="cmt"># pipeline.py — _targeted_resynthesize()</span>
+<span class="kw">for</span> round <span class="kw">in</span> range(config.max_revision_rounds):   <span class="cmt"># default: 2</span>
+  <span class="kw">if not</span> <span class="fn">_has_correctable_flags</span>(review): <span class="kw">break</span>
+
+  <span class="cmt"># Build evidence block for flagged findings only</span>
+  <span class="cmt"># For FALSE_CLAIM: include ALL query outputs so model can find correct citation</span>
+  <span class="cmt"># For other types: include only currently-cited queries</span>
+  flagged_block = <span class="fn">_format_flagged_findings_for_revision</span>(synthesis, review, exec_result)
+
+  <span class="cmt"># Targeted patch: only flagged indices allowed in response</span>
+  revised_findings = <span class="fn">LLM_patch</span>(flagged_block, model=config.synthesiser_model)
+
+  <span class="cmt"># Safety guard: discard any index the model returns that wasn't flagged</span>
+  synthesis = <span class="fn">_merge_revised</span>(synthesis, revised_findings, flagged_indices_only=True)
+
+  review = <span class="fn">review</span>(synthesis, exec_result, playbooks)
+
+<span class="cmt"># Post-loop: cap confidence of findings that still carry flags</span>
+synthesis = <span class="fn">_apply_confidence_adjustments</span>(synthesis, review)</code></pre>
+
+  <div class="callout warn">
+    <strong>Supporting query indices are never updated by the revision LLM.</strong> <code>supporting_queries</code> and <code>chart_ref</code> are always restored from the original synthesis after a revision response. The model can only change <code>title</code>, <code>interpretation</code>, <code>confidence</code>, and <code>caveats</code>.
+  </div>
+
+  <!-- ======================================================= AGENT -->
+  <h2 id="mod-agent">
+    <span class="pill pill-rag">agent.py</span>
+    Core Agent Functions
+  </h2>
+
+  <h3>Key Functions</h3>
+
+  <table>
+    <thead><tr><th>Function</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>ask_agent_xml()</td><td>Main executor entry point. Retrieves context, calls LLM, parses XML response, runs sandboxed code, narrates result.</td></tr>
+      <tr><td>retrieve_context_weighted_chroma()</td><td>Weighted cosine retrieval across metadata + dict stores. Merges, deduplicates, returns top-N chunks.</td></tr>
+      <tr><td>retrieve_playbooks()</td><td>Retrieves top-k playbook JSONL chunks from chroma_persist_playbooks for goal type.</td></tr>
+      <tr><td>classify_need_for_code()</td><td>Q&A tab only. Returns "code" or "text". Bypassed entirely in pipeline tab.</td></tr>
+      <tr><td>run_sandboxed()</td><td>Executes generated Python in a restricted namespace. Applies chart stylesheet before exec, runs print interceptor, applies post-exec figure cleanup and time-axis ordering guard. Catches SystemExit before Exception.</td></tr>
+      <tr><td>_think_kwargs()</td><td>Returns <code>{"think": False}</code> for any model whose name contains "qwen3", empty dict otherwise. Spread into all three ollama.Client.chat() call sites to suppress chain-of-thought on Qwen3 models (prevents 10–14× slowdown in planning and synthesis stages).</td></tr>
+      <tr><td>narrate_code_result()</td><td>Secondary LLM call: converts raw stdout to plain English. Stored in conversation history.</td></tr>
+      <tr><td>get_schema_with_quality()</td><td>Generates schema string with dtype, null rate, and sample values per column.</td></tr>
+      <tr><td>sanitise_for_prompt()</td><td>Replaces non-ASCII characters. Applied to goal text, schema, and playbook content before injection.</td></tr>
+      <tr><td>fix_groupby_axis_orientation()</td><td>AST-level fix: swaps groupby column order when categorical column incorrectly precedes time column before .unstack().</td></tr>
+      <tr><td>fix_single_index_unstack()</td><td>AST-level fix: removes .unstack() calls after single-key groupby, which raise "index must be a MultiIndex".</td></tr>
+      <tr><td>fix_ratio_of_means()</td><td>AST-level rewrite: converts df['A'].mean() / df['B'].mean() → (df['A'] / df['B']).mean() to enforce row-level ratio semantics.</td></tr>
+      <tr><td>format_conversation_history()</td><td>Formats the last N turns of history for prompt injection. Stores narrations, not code — prevents the model copying prior code verbatim.</td></tr>
+      <tr><td>parse_xml_response()</td><td>Public XML parser for executor responses. Strips markdown fences, extracts action + content tags.</td></tr>
+      <tr><td>extract_full_metadata()</td><td>Builds the full per-column + dataset-level metadata dict. Input to the vector store setup chain.</td></tr>
+      <tr><td>write_metadata_jsonl()</td><td>Emits one JSONL chunk per column plus a dataset-level summary chunk. Input to build_chroma_collection_from_jsonl().</td></tr>
+      <tr><td>write_data_dictionary_jsonl()</td><td>Parses semi-structured data dictionary text into per-column JSONL chunks. Handles Column:/Description: pairs and titled sections.</td></tr>
+      <tr><td>build_chroma_collection_from_jsonl()</td><td>Creates a ChromaDB persistent collection from a JSONL file. Computes embeddings in batches of 64 via Ollama.</td></tr>
+      <tr><td>check_ollama()</td><td>Pings Ollama host and verifies the named model is loaded. Called at startup.</td></tr>
+      <tr><td>verify_collections()</td><td>Verifies ChromaDB collections exist and are readable. Guards against version-upgrade failures before queries run.</td></tr>
+      <tr><td>make_cell_map()</td><td>Builds a ranked diagnostic map of retrieved chunks with score, store, and text preview. Used by ask_agent_xml() for debug logging.</td></tr>
+      <tr><td>log_retrieval()</td><td>Appends a retrieval result record to an evaluation JSONL log. Used when EVAL_LOG_PATH is active.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>AST Code Fixes</h3>
+  <p>Three deterministic post-processing rewrites applied to generated code by <code>ask_agent_xml()</code> before execution. Each targets a specific class of model error that cannot be caught by the executor prompt alone.</p>
+
+  <table>
+    <thead><tr><th>Function</th><th>Trigger</th><th>Rewrite</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>fix_groupby_axis_orientation()</td>
+        <td><code>.unstack()</code> present; categorical column precedes time column in groupby list</td>
+        <td>Swaps column order: <code>.groupby(['cat', 'month'])</code> → <code>.groupby(['month', 'cat'])</code></td>
+      </tr>
+      <tr>
+        <td>fix_single_index_unstack()</td>
+        <td><code>.unstack()</code> after single-key groupby (regular Index, not MultiIndex)</td>
+        <td>Removes the <code>.unstack()</code> call entirely</td>
+      </tr>
+      <tr>
+        <td>fix_ratio_of_means()</td>
+        <td><code>df['A'].mean() / df['B'].mean()</code> pattern (ratio of aggregates)</td>
+        <td>Rewrites to <code>(df['A'] / df['B']).mean()</code> (mean of row-level ratios)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <strong>All three fixes print a log line when triggered</strong> (<code>[post-process] ...</code>) so transformations are visible without verbose mode. They run silently — the model never sees that its code was changed.
+  </div>
+
+  <h3>Chart Stylesheet &amp; Post-Execution Processing</h3>
+  <p>Applied inside <code>run_sandboxed()</code> — the model's generated code runs inside this wrapper and is unaware of either stage.</p>
+
+  <h4>Before execution — chart stylesheet</h4>
+  <p><code>matplotlib.rcParams.update()</code> is called before the executor code runs. The stylesheet:</p>
+  <ul style="font-size:13px;color:#c9d1d9;margin-left:1.5rem;margin-bottom:12px;line-height:1.7">
+    <li>Detects macOS dark/light mode at runtime via <code>defaults read -g AppleInterfaceStyle</code></li>
+    <li>Sets <code>#FF4B4B</code> (Streamlit red) as the default single-series colour</li>
+    <li>Removes gridlines; sets consistent 11pt font; matches background to system theme</li>
+  </ul>
+
+  <h4>After execution — figure cleanup and time-axis guard</h4>
+  <p>Applied to all axes before <code>fig.savefig()</code>:</p>
+  <ul style="font-size:13px;color:#c9d1d9;margin-left:1.5rem;margin-bottom:12px;line-height:1.7">
+    <li>Top and right spines are removed on every axis</li>
+    <li><strong>Time-axis ordering guard:</strong> if all x-axis tick labels are 4-digit integers in the 1900–2200 range and are in descending order, <code>ax.invert_xaxis()</code> is called. Catches the common case of year bar charts sorted newest-first by a <code>sort_values(ascending=False)</code> call. Executor Rule 21 instructs the model to sort time data ascending before plotting; this guard is the fallback.</li>
+  </ul>
+
+  <h3>Vector Store Setup Chain</h3>
+  <p>The four functions that build a dataset's ChromaDB stores from a CSV + data dictionary. Called once per dataset — either via the <code>setup_stores_*.py</code> scripts for pre-configured datasets, or automatically by the Streamlit upload flow for user-uploaded datasets.</p>
+
+<pre><code><span class="cmt"># Typical setup script flow (also mirrors the upload flow internals)</span>
+df = pd.<span class="fn">read_csv</span>(csv_path)
+
+<span class="cmt"># Step 1: build metadata JSONL (one chunk per column + dataset summary)</span>
+meta_path = <span class="fn">write_metadata_jsonl</span>(df, out_dir=<span class="str">"chunks/"</span>, dataset_name=<span class="str">"my_dataset"</span>)
+<span class="cmt"># internally calls: extract_full_metadata(df) → per-column stats dict</span>
+
+<span class="cmt"># Step 2: build data dictionary JSONL (one chunk per Column:/Description: pair)</span>
+dict_path = <span class="fn">write_data_dictionary_jsonl</span>(dict_path=<span class="str">"my_dict.txt"</span>, out_dir=<span class="str">"chunks/"</span>)
+<span class="cmt"># if no dict file: auto-generated from column names + dtypes</span>
+
+<span class="cmt"># Step 3: embed + insert into ChromaDB (batched, 64 docs at a time)</span>
+<span class="fn">build_chroma_collection_from_jsonl</span>(meta_path, collection_name=<span class="str">"metadata"</span>,
+                                   persist_dir=<span class="str">"chroma_persist_upload_my_dataset"</span>)
+<span class="fn">build_chroma_collection_from_jsonl</span>(dict_path, collection_name=<span class="str">"dict"</span>,
+                                   persist_dir=<span class="str">"chroma_persist_upload_my_dataset"</span>)</code></pre>
+
+  <h4>extract_full_metadata() — Output Structure</h4>
+<pre><code>{
+  <span class="str">"dataset"</span>: {<span class="str">"dataset_name"</span>: str, <span class="str">"n_rows"</span>: int, <span class="str">"n_columns"</span>: int, <span class="str">"columns"</span>: [str]},
+  <span class="str">"columns"</span>: [{
+    <span class="str">"column"</span>:  str,
+    <span class="str">"dtype"</span>:   <span class="str">"numeric"</span> | <span class="str">"categorical"</span> | <span class="str">"datetime"</span> | <span class="str">"text"</span> | <span class="str">"boolean"</span>,
+    <span class="cmt"># numeric:     min, max, mean, median, std, missing</span>
+    <span class="cmt"># categorical: n_unique, top_values (top 10), missing</span>
+    <span class="cmt"># datetime:    min, max, n_unique, frequency, missing</span>
+    <span class="cmt"># text:        avg_len, min_len, max_len, missing</span>
+    <span class="cmt"># boolean:     true_count, missing</span>
+  }],
+  <span class="str">"relationships"</span>:    [str],   <span class="cmt"># e.g. "Profit = Revenue - Cost" (heuristic)</span>
+  <span class="str">"common_analytics"</span>: [str],   <span class="cmt"># e.g. "group by category and aggregate revenue"</span>
+  <span class="str">"example_rows"</span>:     [dict],  <span class="cmt"># first 3 rows as dicts</span>
+}</code></pre>
+
+  <h3>Startup &amp; Diagnostics</h3>
+
+  <div class="sig">
+    <span class="sig-fn">check_ollama</span>(<span class="sig-param">model_name</span>: <span class="sig-type">str = MODEL_NAME</span>) <span class="sig-arrow">→</span> <span class="sig-return">{"ok": bool, "error": str}</span>
+  </div>
+  <p>Pings <code>OLLAMA_HOST</code> and confirms the named model is in the model list. Returns <code>{"ok": True}</code> on success, or <code>{"ok": False, "error": "..."}</code> with a fix hint. Called at Streamlit startup.</p>
+
+  <div class="sig">
+    <span class="sig-fn">verify_collections</span>(<span class="sig-param">collections</span>: <span class="sig-type">dict</span>, <span class="sig-param">persist_dir</span>: <span class="sig-type">str</span>) <span class="sig-arrow">→</span> <span class="sig-return">{"ok": bool, ...}</span>
+  </div>
+  <p>Opens the ChromaDB store and calls <code>get_collection()</code> on each named collection. Guards against post-upgrade schema mismatches that would otherwise surface mid-pipeline. Fix hint: re-run the relevant <code>setup_stores_*.py</code> or re-upload the dataset.</p>
+
+  <h4>ask_agent_xml() — Response Format</h4>
+  <p>The executor LLM is instructed to respond strictly in XML. Any response not matching this structure is treated as a failed query.</p>
+<pre><code><span class="str">&lt;response&gt;</span>
+  <span class="str">&lt;action&gt;</span>code<span class="str">&lt;/action&gt;</span>   <span class="cmt">&lt;!-- or: text --&gt;</span>
+  <span class="str">&lt;content&gt;</span>
+    import pandas as pd
+    result = df.groupby("category")["revenue"].sum().sort_values(ascending=False)
+    print(result)
+  <span class="str">&lt;/content&gt;</span>
+<span class="str">&lt;/response&gt;</span></code></pre>
+
+  <h4>Conversation History Format</h4>
+<pre><code>conversation_history: list[{
+  <span class="str">"query"</span>:  str,          <span class="cmt"># the question asked</span>
+  <span class="str">"result"</span>: {
+    <span class="str">"action"</span>:      <span class="str">"code"</span> | <span class="str">"text"</span>,
+    <span class="str">"content"</span>:     str,    <span class="cmt"># generated code or text answer</span>
+    <span class="str">"exec_result"</span>: {
+      <span class="str">"ok"</span>:         bool,
+      <span class="str">"narration"</span>:  str,   <span class="cmt"># plain-English summary stored in history (not raw code)</span>
+      <span class="str">"stdout"</span>:     str,
+    }
+  }
+}]</code></pre>
+
+  <!-- ======================================================= PIPELINE MODULE -->
+  <h2 id="mod-pipeline">
+    <span class="pill pill-config">pipeline.py</span>
+    Pipeline Orchestrator
+  </h2>
+
+  <h4>PipelineConfig — Tuneable Parameters</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Default</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>planner_model</td><td>gpt-oss:20b</td><td>Model for planning, synthesis, review</td></tr>
+      <tr><td>executor_model</td><td>gpt-oss:20b</td><td>Model for per-query code/text generation</td></tr>
+      <tr><td>playbook_k</td><td>3</td><td>Number of playbooks retrieved per goal</td></tr>
+      <tr><td>max_executor_queries</td><td>None</td><td>Truncate plan (None = run all)</td></tr>
+      <tr><td>max_revision_rounds</td><td>2</td><td>Max review→revise cycles</td></tr>
+      <tr><td>executor_max_workers</td><td>2</td><td>Concurrent Ollama requests per wave</td></tr>
+      <tr><td>charts_dir</td><td>pipeline_charts</td><td>Output directory for chart PNGs</td></tr>
+      <tr><td>log_dir</td><td>pipeline_logs</td><td>JSONL log output directory</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Stage Failure Handling</h4>
+  <table>
+    <thead><tr><th>Stage</th><th>On failure</th></tr></thead>
+    <tbody>
+      <tr><td>Playbook retrieval</td><td>Continues with empty playbooks list</td></tr>
+      <tr><td>Plan</td><td>Returns immediately with failed_stage="plan"</td></tr>
+      <tr><td>Execute</td><td>Continues to synthesiser (it notes gaps); BaseException re-raised</td></tr>
+      <tr><td>Synthesise</td><td>Returns immediately with failed_stage="synthesise"</td></tr>
+      <tr><td>Review</td><td>Non-fatal; returns synthesis with overall_status="REVIEW", review_result=None</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= DISPLAY HELPERS -->
+  <h2 id="display-helpers">Display Helpers</h2>
+
+  <p>Each module exposes one <code>format_*_as_text()</code> function that renders its result dataclass as a human-readable string for CLI output, verbose logging, and test scripts. None of these affect pipeline logic.</p>
+
+  <table>
+    <thead><tr><th>Function</th><th>Module</th><th>Output includes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>format_plan_as_text(result: PlanResult)</td>
+        <td>planner.py</td>
+        <td>Model, timing, playbooks, quality issues, goal dimensions, all queries with rationale and depends_on</td>
+      </tr>
+      <tr>
+        <td>format_brief_as_text(result: SynthesisResult)</td>
+        <td>synthesiser.py</td>
+        <td>Headline finding, all findings with confidence + caveats, gaps, next_steps_now and next_steps_more_data as separate lists, data quality notes</td>
+      </tr>
+      <tr>
+        <td>format_review_as_text(result: ReviewResult)</td>
+        <td>reviewer.py</td>
+        <td>Overall assessment, per-finding flags with type + detail, automated check results</td>
+      </tr>
+      <tr>
+        <td>format_pipeline_summary(result: PipelineResult)</td>
+        <td>pipeline.py</td>
+        <td>Status, total time, per-stage timings, plan query count, execution pass/fail counts, synthesis headline, review assessment + revision rounds, log path</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= UI LAYER -->
+  <h2 id="ui-layer">UI Layer</h2>
+
+  <p>Three aspects of <code>app.py</code> behaviour that are architectural rather than cosmetic: how datasets enter the system, how DataFrames are rendered, and how multi-step analyses are orchestrated.</p>
+
+  <h3 id="upload-flow">Dataset Upload</h3>
+
+  <p>The upload flow is the primary route for adding a dataset. It mirrors the <code>setup_stores_*.py</code> pipeline but runs entirely inside the Streamlit session.</p>
+
+<pre><code><span class="cmt"># app.py — setup_for_upload() flow</span>
+
+<span class="cmt"># 1. User drops CSV (required) + optional .txt dictionary</span>
+df   = pd.<span class="fn">read_csv</span>(uploaded_csv)
+name = <span class="fn">sanitise_name</span>(uploaded_csv.name)   <span class="cmt"># used as the store key</span>
+
+<span class="cmt"># 2. Build data dictionary (uploaded or auto-generated)</span>
+<span class="kw">if</span> uploaded_dict:
+    dict_text = uploaded_dict.<span class="fn">read</span>().decode()
+<span class="kw">else</span>:
+    dict_text = <span class="fn">auto_generate_dict</span>(df)   <span class="cmt"># column names + dtypes only</span>
+
+<span class="cmt"># 3. Write JSONL chunks and embed into ChromaDB</span>
+persist_dir = <span class="fn">f</span><span class="str">"chroma_persist_upload_{name}"</span>
+<span class="fn">write_metadata_jsonl</span>(df, ...)
+<span class="fn">write_data_dictionary_jsonl</span>(dict_text, ...)
+<span class="fn">build_chroma_collection_from_jsonl</span>(..., persist_dir=persist_dir)   <span class="cmt"># metadata store</span>
+<span class="fn">build_chroma_collection_from_jsonl</span>(..., persist_dir=persist_dir)   <span class="cmt"># dict store</span>
+
+<span class="cmt"># 4. Dataset appears in selector; st.success() confirms dict source</span></code></pre>
+
+  <h4>Dataset removal</h4>
+  <p>A two-step "Remove dataset" button (warn → confirm) deletes the <code>chroma_persist_upload_*</code> directory from disk, updates the selector, and clears chat history and analysis results for that dataset.</p>
+
+  <h4>Cleanup</h4>
+  <p>On session end, <code>atexit</code> removes all <code>chroma_persist_upload_*</code> directories. On startup, <code>app.py</code> scans for and removes stale upload directories from previous sessions (guarded by <code>_startup_cleanup_done</code> session state flag to run only once per session).</p>
+
+  <h3 id="print-interceptor">DataFrame Rendering — Print Interceptor</h3>
+
+  <p><code>run_sandboxed()</code> replaces the <code>print</code> builtin in the sandbox's <code>allowed_builtins</code> with <code>_sandboxed_print</code>. This interceptor captures DataFrame and Series objects for rich rendering in Streamlit, while still writing the string representation to the output buffer as normal.</p>
+
+<pre><code><span class="cmt"># agent.py — inside run_sandboxed()</span>
+captured_frames = []
+
+<span class="kw">def</span> <span class="fn">_sandboxed_print</span>(*args, sep=<span class="str">" "</span>, end=<span class="str">"\n"</span>, file=<span class="num">None</span>, flush=<span class="num">False</span>):
+  <span class="kw">for</span> arg <span class="kw">in</span> args:
+    <span class="kw">if</span> <span class="fn">isinstance</span>(arg, pd.DataFrame):
+      captured_frames.<span class="fn">append</span>(arg.<span class="fn">copy</span>())          <span class="cmt"># stash the object</span>
+    <span class="kw">elif</span> <span class="fn">isinstance</span>(arg, pd.Series):
+      captured_frames.<span class="fn">append</span>(arg.<span class="fn">reset_index</span>())   <span class="cmt"># promote index to columns</span>
+  <span class="fn">_original_print</span>(*args, sep=sep, end=end)        <span class="cmt"># still writes to stdout buffer</span>
+
+allowed_builtins[<span class="str">"print"</span>] = _sandboxed_print
+
+<span class="cmt"># After exec: bare last-expression DataFrames also added to captured_frames</span>
+<span class="kw">return</span> {<span class="str">"ok"</span>: True, <span class="str">"stdout"</span>: stdout, <span class="str">"frames"</span>: captured_frames, ...}</code></pre>
+
+  <p><code>executor_loop.py</code> propagates <code>frames</code> through the per-query result dict. <code>app.py</code>'s <code>_render_stdout(text, frames)</code> renders each captured frame via <code>st.dataframe()</code> — proper string-left / number-right alignment, sortable columns, horizontal scroll. Plain text and uncaptured Series fall back to <code>st.code()</code>.</p>
+
+  <div class="callout note">
+    <strong>Generated code must use <code>print(result)</code>, not <code>print(result.to_string(...))</code>.</strong> The interceptor needs the object itself to call <code>st.dataframe()</code> on it. A pre-converted string bypasses the interceptor and falls back to code block rendering. This is Executor Rule 20.
+  </div>
+
+  <h3 id="next-step-ui">Next-Step Buttons &amp; Result Stacking</h3>
+
+  <p>After an analysis run, <code>next_steps_now</code> items from the <code>SynthesisResult</code> are rendered as <code>st.button()</code> widgets below the findings. The session state machinery avoids Streamlit's "can't modify widget key after instantiation" constraint.</p>
+
+<pre><code><span class="cmt"># app.py — next-step button click handler</span>
+<span class="kw">if</span> st.<span class="fn">button</span>(step_text, key=<span class="fn">f</span><span class="str">"next_{result_idx}_{step_idx}"</span>):
+  st.session_state[<span class="str">"pending_goal"</span>]  = step_text   <span class="cmt"># deferred — not set on widget directly</span>
+  st.session_state[<span class="str">"auto_run"</span>]      = True
+  st.<span class="fn">rerun</span>()
+
+<span class="cmt"># app.py — at the top of render_analysis_tab(), before rendering</span>
+<span class="kw">if</span> st.session_state.<span class="fn">get</span>(<span class="str">"auto_run"</span>):
+  goal = st.session_state.<span class="fn">pop</span>(<span class="str">"pending_goal"</span>)
+  st.session_state[<span class="str">"auto_run"</span>] = False
+  result = <span class="fn">run_analysis</span>(goal, ...)
+  st.session_state[<span class="str">"analysis_results"</span>].<span class="fn">append</span>(result)   <span class="cmt"># stacks below prior results</span></code></pre>
+
+  <h4>Result stacking behaviour</h4>
+  <ul style="font-size:13px;color:#c9d1d9;margin-left:1.5rem;margin-bottom:12px;line-height:1.7">
+    <li>Next-step runs <strong>append</strong> to <code>analysis_results</code> — prior results remain visible above</li>
+    <li>Manual "Run Analysis" <strong>clears</strong> <code>analysis_results</code> — fresh start</li>
+    <li>Each result has its own PDF export button, keyed by list index (<code>idx</code>) to avoid <code>DuplicateWidgetID</code> errors</li>
+    <li>The pipeline execution block runs <em>after</em> the results loop so existing results render before the spinner appears</li>
+  </ul>
+
+  <!-- ======================================================= DATA STRUCTURES -->
+  <h2 id="ds-planresult">Data Structures</h2>
+
+  <h3 id="ds-planresult-h">PlanResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">PlanResult</span>:
+  success:         bool
+  goal:            str
+  dataset_name:    str
+  model:           str
+  schema:          str           <span class="cmt"># full schema text passed to planner</span>
+  playbooks_used:  list[str]     <span class="cmt"># playbook names retrieved</span>
+  quality_issues:  list[str]     <span class="cmt"># data quality notes from planner</span>
+  goal_dimensions: list[str]     <span class="cmt"># 2–5 distinct goal aspects</span>
+  plan: list[{                   <span class="cmt"># ordered analysis plan</span>
+    question:         str,       <span class="cmt"># natural-language analytical question</span>
+    rationale:        str,       <span class="cmt"># why this question was included</span>
+    depends_on:       int|None,  <span class="cmt"># index of prerequisite query</span>
+    covers_dimension: str,       <span class="cmt"># which goal_dimension this addresses</span>
+  }]
+  raw_response:    str           <span class="cmt"># full LLM response (debug)</span>
+  parse_error:     str|None
+  elapsed_s:       float</code></pre>
+
+  <h3 id="ds-executionresult">ExecutionResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">ExecutionResult</span>:
+  dataset_name:   str
+  model:          str
+  goal:           str
+  query_results:  list[dict]    <span class="cmt"># see per-query schema in executor section</span>
+  pass_count:     int
+  fail_count:     int
+  total_time_s:   float
+  charts_dir:     str</code></pre>
+
+  <h3 id="ds-synthesisresult">SynthesisResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">SynthesisResult</span>:
+  success:              bool
+  goal:                 str
+  dataset_name:         str
+  model:                str
+  data_quality_notes:   str
+  findings:             list[dict]    <span class="cmt"># see finding schema in synthesiser section</span>
+  gaps:                 list[str]     <span class="cmt"># unaddressed goal aspects</span>
+  next_steps_now:       list[str]     <span class="cmt"># follow-up analyses runnable on the current dataset</span>
+  next_steps_more_data: list[str]     <span class="cmt"># analyses that require additional data</span>
+  next_steps:           list[str]     <span class="cmt"># union of both lists (backward compat)</span>
+  summary_ranking:      str           <span class="cmt"># one-sentence headline finding</span>
+  raw_response:         str
+  parse_error:          str|None
+  elapsed_s:            float</code></pre>
+
+  <h3 id="ds-reviewresult">ReviewResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">ReviewResult</span>:
+  success:              bool
+  model:                str
+  overall_assessment:   str         <span class="cmt"># "PASS" | "REVIEW" | "FAIL"</span>
+  per_finding_flags:    list[{
+    finding_index: int,
+    flags: list[{
+      type:   str,                  <span class="cmt"># see flag schema above</span>
+      detail: str,                  <span class="cmt"># specific description of the issue</span>
+    }]
+  }]
+  automated_checks:     dict        <span class="cmt"># results of deterministic pre-checks</span>
+  raw_response:         str
+  parse_error:          str|None
+  elapsed_s:            float</code></pre>
+
+  <!-- ======================================================= RAG DESIGN -->
+  <h2 id="rag-design">RAG Architecture</h2>
+
+  <p>Two ChromaDB stores per dataset, embedded with <code>mxbai-embed-large</code> via Ollama. Retrieval is weighted across both stores; scores are normalised and merged before top-N selection.</p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart LR
+    CSV["CSV + Data Dictionary\n(or auto-generated dict)"] --> SS["setup_stores_*.py / upload flow\nbuild_chroma_collection_from_jsonl()"]
+
+    SS --> META["metadata store\nN+1 chunks\n• 1 dataset-level summary\n• 1 per column (stats + samples)"]
+    SS --> DICT["dict store\nN chunks\n• 1 per column (data dictionary text)"]
+
+    META --> RET["retrieve_context_weighted_chroma()\nweights: metadata×1.3, dict×1.0\nks: metadata=8, dict=5"]
+    DICT --> RET
+
+    PB["chroma_persist_playbooks\n12 analytical playbooks\n(trend, comparison, composition, ranking,\ndistribution, correlation, hypothesis, anomaly,\ncohort, funnel, forecasting, basket)"]
+
+    RET -->|"top-12 chunks"| EXEC["ask_agent_xml()\ninjected as CONTEXT block"]
+    PB -->|"retrieve_playbooks(k=3)"| PL_SY["Planner / Synthesiser / Reviewer\nprompt injection"]
+
+    style META fill:#2b1e0a,stroke:#ffa657,color:#e6edf3
+    style DICT fill:#2b1e0a,stroke:#ffa657,color:#e6edf3
+    style PB   fill:#2b1e0a,stroke:#ffa657,color:#e6edf3
+    style RET  fill:#21262d,stroke:#30363d,color:#e6edf3
+    </div>
+  </div>
+
+  <h4>Playbook Chunk Schema</h4>
+  <p>Each playbook is stored as a JSONL record. Key fields retrieved and injected into planner/synthesiser/reviewer prompts:</p>
+  <table>
+    <thead><tr><th>Field</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>name</td><td>Display name (e.g. "Hypothesis Testing")</td></tr>
+      <tr><td>when</td><td>Trigger conditions — when this playbook applies</td></tr>
+      <tr><td>steps</td><td>Ordered analytical procedure</td></tr>
+      <tr><td>pitfalls</td><td>Common errors with Python idiom examples (CORRECT/WRONG)</td></tr>
+      <tr><td>output</td><td>Expected output format and what must be reported</td></tr>
+      <tr><td>hypothesis_templates</td><td>4 ready-made question framings that push toward actionable implications rather than description</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <strong>Embed truncation.</strong> <code>setup_stores_playbooks.py</code> truncates each playbook's embed text to 1800 characters before calling <code>mxbai-embed-large</code> (context limit). The full text is stored in ChromaDB metadata and returned at retrieval time — only the embedding is truncated.
+  </div>
+
+  <h4>Chunk Structure — Metadata Store</h4>
+<pre><code><span class="cmt"># Dataset-level chunk (1 per store)</span>
+{
+  <span class="str">"chunk_type"</span>: <span class="str">"dataset_summary"</span>,
+  <span class="str">"dataset_name"</span>: str,
+  <span class="str">"row_count"</span>: int,
+  <span class="str">"column_count"</span>: int,
+  <span class="str">"columns"</span>: [str, ...],
+}
+
+<span class="cmt"># Per-column chunk (1 per column)</span>
+{
+  <span class="str">"chunk_type"</span>: <span class="str">"column_stats"</span>,
+  <span class="str">"column_name"</span>: str,
+  <span class="str">"dtype"</span>: str,
+  <span class="str">"null_rate"</span>: float,
+  <span class="str">"unique_count"</span>: int,
+  <span class="str">"sample_values"</span>: [str, ...],
+  <span class="str">"numeric_stats"</span>: {<span class="str">"min"</span>: ..., <span class="str">"max"</span>: ..., <span class="str">"mean"</span>: ..., <span class="str">"median"</span>: ...},
+}</code></pre>
+
+  <!-- ======================================================= CONFIG REF -->
+  <h2 id="config-ref">
+    <span class="pill pill-config">config.py</span>
+    Configuration Reference
+  </h2>
+
+  <table>
+    <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>MODEL_NAME</td><td>gpt-oss:20b</td><td>Primary executor model. 2× faster than qwen2.5-coder:32b; 97% query pass rate on validation suite.</td></tr>
+      <tr><td>PLANNER_MODEL</td><td>gpt-oss:20b</td><td>Model for planner, synthesiser, reviewer stages.</td></tr>
+      <tr><td>CLASSIFIER_MODEL</td><td>qwen2.5-coder:14b</td><td>Q&A tab classifier only. 33/34 accuracy vs 10/34 for gpt-oss:20b.</td></tr>
+      <tr><td>EXECUTOR_FALLBACK_MODEL</td><td>qwen2.5-coder:32b</td><td>Used on code execution failure. Different model = genuinely different attempt.</td></tr>
+      <tr><td>EMBED_MODEL</td><td>mxbai-embed-large</td><td>Embedding model for all ChromaDB stores.</td></tr>
+      <tr><td>OLLAMA_HOST</td><td>http://localhost:11434</td><td>Override with <code>OLLAMA_HOST</code> env var for remote Ollama (e.g. Mac Studio over Tailscale).</td></tr>
+      <tr><td>OLLAMA_TIMEOUT</td><td>600</td><td>Seconds before LLM call times out. Prevents silent hangs under thermal throttle.</td></tr>
+      <tr><td>EXECUTOR_NUM_PREDICT</td><td>2048</td><td>Max tokens for executor. Prevents code truncation mid-statement.</td></tr>
+      <tr><td>EXECUTOR_MAX_WORKERS</td><td>2</td><td>Concurrent Ollama requests. Requires <code>OLLAMA_NUM_PARALLEL ≥ 2</code> on inference host.</td></tr>
+      <tr><td>TEMPERATURE</td><td>0.0</td><td>All LLM calls. Determinism is preferred over creativity.</td></tr>
+      <tr><td>MAX_RETRIES</td><td>1</td><td>Planner/synthesiser only. Executor has no retry by design.</td></tr>
+      <tr><td>RETRIEVAL_TOP_N</td><td>12</td><td>Final chunk count returned after merge + rerank.</td></tr>
+      <tr><td>RETRIEVAL_WEIGHTS</td><td>metadata: 1.3, dict: 1.0</td><td>Score multipliers before merge. Metadata slightly preferred.</td></tr>
+      <tr><td>RETRIEVAL_KS</td><td>metadata: 8, dict: 5</td><td>Per-store fetch counts before weighted merge.</td></tr>
+      <tr><td>CONVERSATION_HISTORY_WINDOW</td><td>3</td><td>Prior turns injected between CONTEXT and QUESTION in executor prompt.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= DATASETS -->
+  <h2 id="datasets">Datasets &amp; Upload</h2>
+
+  <p>Every dataset requires two ChromaDB collections — <code>metadata</code> and <code>dict</code> — persisted in a named directory. These are built once and reused across sessions. The primary route for new datasets is the Streamlit upload flow (see <a href="#upload-flow" style="color:var(--link)">UI Layer — Dataset Upload</a>). Pre-configured datasets can also be built offline via the <code>setup_stores_*.py</code> scripts.</p>
+
+  <table>
+    <thead><tr><th>Route</th><th>Store path pattern</th><th>Dictionary source</th><th>Lifetime</th></tr></thead>
+    <tbody>
+      <tr><td>Streamlit upload</td><td>chroma_persist_upload_&lt;name&gt;/</td><td>Uploaded .txt or auto-generated from column names + dtypes</td><td>Session only — removed on exit and at startup cleanup</td></tr>
+      <tr><td>setup_stores_*.py</td><td>chroma_persist_&lt;name&gt;/</td><td>Manually authored .txt data dictionary</td><td>Permanent — persists across sessions until manually deleted</td></tr>
+      <tr><td>Playbooks (special)</td><td>chroma_persist_playbooks/</td><td>12 JSONL playbook files in playbook_chunks/</td><td>Permanent — rebuilt via setup_stores_playbooks.py after adding/editing playbooks</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <strong>Rebuilding a store.</strong> If a ChromaDB version upgrade causes a schema mismatch, <code>verify_collections()</code> will catch it at startup. Fix: delete the <code>chroma_persist_*/</code> directory and re-run <code>setup_stores_*.py</code>, or re-upload the dataset through the app.
+  </div>
+
+  <h3>Development &amp; Testing Datasets</h3>
+  <p>The following datasets are the creator's own, used for development, benchmarking, and regression testing. They are pre-configured with permanent ChromaDB stores and corresponding validation scripts. They are not part of the upload flow — each store was built once with <code>setup_stores_*.py</code> and is committed to the working environment. They serve as stable regression targets when changing pipeline components.</p>
+
+  <h4>Synthetic — Development &amp; Validation</h4>
+  <table>
+    <thead><tr><th>Dataset</th><th>Rows</th><th>Key dimensions</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>sample_sales_data.csv</td>
+        <td>72</td>
+        <td>Region, Product, Month, Revenue, Cost, Profit, Units_Sold</td>
+        <td>Early development, validation.py (16 queries)</td>
+      </tr>
+      <tr>
+        <td>employee_data.csv</td>
+        <td>100</td>
+        <td>Department, Role, Location, Salary, Bonus, PerformanceScore, TurnoverRisk, Gender, EducationLevel, YearsExperience</td>
+        <td>validation_employee.py (12 queries)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>CORGI Benchmark</h4>
+  <p>Three synthetic transactional datasets from the CORGI (Consumer Order &amp; Review Generated Intelligence) evaluation benchmark. Originally in SQLite; flattened to CSV via <code>corgi_flatten.py</code>. Each maps to a set of analytical goals (FD, CL, HR) used in <code>run_corgi_pipeline.py</code>.</p>
+  <table>
+    <thead><tr><th>Dataset</th><th>Rows</th><th>Key dimensions</th><th>CORGI goals</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>corgi_data/food_delivery.csv</td>
+        <td>5,000</td>
+        <td>Order value, delivery time, restaurant category, user area, prime membership, promo use, delivery vehicle, ratings</td>
+        <td>FD01–FD04</td>
+      </tr>
+      <tr>
+        <td>corgi_data/clothing.csv</td>
+        <td>12,783</td>
+        <td>Department, category, SKU size/colour/fit, order value, loyalty points, fulfilment method, returns, return reason, shipping days</td>
+        <td>CL01–CL04</td>
+      </tr>
+      <tr>
+        <td>corgi_data/home_rental.csv</td>
+        <td>5,000</td>
+        <td>Room type, neighbourhood, stay length, total price, cleaning fee, guest count, host response rate, review rating, booking status</td>
+        <td>HR01–HR04</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Official Statistics (ONS)</h4>
+  <p>Flattened from ONS bulk releases via <code>ons_flatten_earnings.py</code> and <code>ons_flatten_paygap.py</code>. Used to validate the pipeline against real public-sector data with known benchmark figures.</p>
+  <table>
+    <thead><tr><th>Dataset</th><th>Rows</th><th>Key dimensions</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>ons_data/ashe_earnings_2025.csv</td>
+        <td>16,857</td>
+        <td>Breakdown type (region, occupation, industry, age), employment type (full/part-time), weekly/hourly/annual pay (median + mean), hours worked, job count</td>
+        <td>ONS Annual Survey of Hours and Earnings (ASHE) 2025</td>
+      </tr>
+      <tr>
+        <td>ons_data/gender_pay_gap_2025.csv</td>
+        <td>1,668</td>
+        <td>Breakdown category (region, occupation, industry, age), employment type, median pay gap %, mean pay gap %</td>
+        <td>ONS Gender Pay Gap 2025</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>NHS Prescribing (EPD)</h4>
+  <table>
+    <thead><tr><th>Dataset</th><th>Rows</th><th>Key dimensions</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>NHS Data/English Prescribing Dataset (EPD) Jan 2026.csv</td>
+        <td>2,792</td>
+        <td>Regional office, ICB, practice, BNF chemical substance, BNF presentation, quantity, items, actual cost, SNOMED code</td>
+        <td>NHS Business Services Authority EPD — January 2026 release</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Personal Library (iTunes)</h4>
+  <p>Personal iTunes library exports. Used primarily for validation (<code>validation_itunes_v2.py</code>, 24 queries) because the creator knows the ground-truth answers, making accuracy checks authoritative.</p>
+  <table>
+    <thead><tr><th>Dataset</th><th>Rows</th><th>Key dimensions</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>itunes_library.csv</td>
+        <td>5,875</td>
+        <td>Track name, artist, album, genre, year, play count, skip count, rating, BPM, date added, file kind, duration, bit rate</td>
+      </tr>
+      <tr>
+        <td>itunes_films.csv</td>
+        <td>145</td>
+        <td>Film name, file size (GB), last modified year</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= LOGGING -->
+  <h2 id="logging">Logging</h2>
+
+  <p>Every pipeline run appends one JSONL record to <code>pipeline_logs/pipeline_{dataset}_{date}.jsonl</code> regardless of outcome. The log is written after the final stage completes (or after the first stage that fails). It is the authoritative record of what happened and the primary input for all evaluation, consistency analysis, and HTML report generation.</p>
+
+  <h4>Top-level Fields</h4>
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Why it's logged</th></tr></thead>
+    <tbody>
+      <tr><td>timestamp</td><td>ISO datetime</td><td>Ordering runs; correlating with Ollama logs</td></tr>
+      <tr><td>goal</td><td>str</td><td>Identifying what was asked</td></tr>
+      <tr><td>dataset_name</td><td>str</td><td>Filtering logs by dataset in analysis scripts</td></tr>
+      <tr><td>overall_status</td><td>PASS / REVIEW / FAIL / ERROR</td><td>Primary metric for consistency analysis and pass-rate tracking</td></tr>
+      <tr><td>failed_stage</td><td>str | null</td><td>Diagnose where the pipeline broke</td></tr>
+      <tr><td>total_time_s</td><td>float</td><td>End-to-end latency tracking; benchmarking model changes</td></tr>
+      <tr><td>stage_timings</td><td>dict[str, float]</td><td>Per-stage breakdown: playbooks, plan, execute, synthesise, review</td></tr>
+      <tr><td>revision_rounds</td><td>int</td><td>How hard the reviewer had to work; 0 = clean first pass</td></tr>
+      <tr><td>revision_still_flagged</td><td>bool</td><td>True if correctable flags remained after all revision rounds</td></tr>
+      <tr><td>error</td><td>str | null</td><td>Exception detail when a stage raised unexpectedly</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Config Snapshot</h4>
+  <p>A subset of <code>PipelineConfig</code> is logged alongside each run so that model comparison experiments can be replayed or filtered without needing to reconstruct the run conditions from memory.</p>
+<pre><code><span class="str">"config"</span>: {
+  <span class="str">"planner_model"</span>:        str,   <span class="cmt"># which model planned + reviewed</span>
+  <span class="str">"executor_model"</span>:       str,   <span class="cmt"># which model ran the queries</span>
+  <span class="str">"playbook_k"</span>:           int,
+  <span class="str">"max_executor_queries"</span>: int|null
+}</code></pre>
+
+  <h4>Plan Detail</h4>
+<pre><code><span class="str">"plan"</span>: {
+  <span class="str">"query_count"</span>:     int,
+  <span class="str">"quality_issues"</span>:  int,          <span class="cmt"># data quality flags from planner</span>
+  <span class="str">"playbooks_used"</span>:  [str],
+  <span class="str">"goal_dimensions"</span>: [str],
+  <span class="str">"plan_detail"</span>: [{
+    <span class="str">"index"</span>:            int,
+    <span class="str">"question"</span>:         str,
+    <span class="str">"covers_dimension"</span>: str,
+    <span class="str">"depends_on"</span>:       int|null
+  }]
+}</code></pre>
+
+  <h4>Execution Detail</h4>
+  <p>One entry per query. Full generated code is included so failures can be diagnosed without re-running.</p>
+<pre><code><span class="str">"execution_detail"</span>: [{
+  <span class="str">"index"</span>:            int,
+  <span class="str">"question"</span>:         str,
+  <span class="str">"success"</span>:          bool,
+  <span class="str">"execution_time_s"</span>: float,
+  <span class="str">"result_text"</span>:      str,    <span class="cmt"># narrated output or error message</span>
+  <span class="str">"generated_code"</span>:   str,    <span class="cmt"># included for failed queries; empty for text actions</span>
+  <span class="str">"error"</span>:            str|null,
+  <span class="str">"chart_path"</span>:       str|null
+}]</code></pre>
+
+  <h4>Synthesis &amp; Review Detail</h4>
+  <p>Full structured output is logged (not just summary counts) so that <code>export_for_evaluation.py</code> can reconstruct a complete evaluation document from logs alone, without re-running the pipeline.</p>
+<pre><code><span class="str">"synthesis"</span>: {
+  <span class="str">"findings_count"</span>:      int,
+  <span class="str">"gaps_count"</span>:          int,
+  <span class="str">"summary_ranking"</span>:     str,    <span class="cmt"># headline finding sentence</span>
+  <span class="str">"findings"</span>:            [...],  <span class="cmt"># full finding objects (see SynthesisResult schema)</span>
+  <span class="str">"gaps"</span>:                [...],
+  <span class="str">"next_steps_now"</span>:      [...],  <span class="cmt"># runnable on current dataset</span>
+  <span class="str">"next_steps_more_data"</span>:[...],  <span class="cmt"># requires additional data</span>
+  <span class="str">"next_steps"</span>:          [...],  <span class="cmt"># union of both (backward compat)</span>
+  <span class="str">"data_quality_notes"</span>:  str
+}
+
+<span class="str">"review"</span>: {
+  <span class="str">"overall_assessment"</span>:        str,   <span class="cmt"># PASS / REVIEW / FAIL</span>
+  <span class="str">"correctable_flag_count"</span>:    int,
+  <span class="str">"non_correctable_flag_count"</span>: int,
+  <span class="str">"per_finding_flags"</span>:         [...],  <span class="cmt"># full typed flag objects per finding</span>
+  <span class="str">"automated_checks"</span>:          {}      <span class="cmt"># deterministic pre-check results</span>
+}</code></pre>
+
+  <h4>Downstream Consumers</h4>
+  <table>
+    <thead><tr><th>Script</th><th>What it reads</th></tr></thead>
+    <tbody>
+      <tr><td>export_for_evaluation.py</td><td>Full run records; reconstructs findings + review flags into a structured eval document. <code>--since</code> and <code>--split</code> flags filter by date and split by goal.</td></tr>
+      <tr><td>analyse_consistency.py</td><td>overall_status + per-finding confidence + flag counts across multiple runs of the same goal. Produces headline + detail consistency report.</td></tr>
+      <tr><td>generate_run_report.py</td><td>Renders execution_detail + synthesis + review into a collapsible HTML report; one section per pipeline stage.</td></tr>
+      <tr><td>replay_review.py</td><td>Reads synthesis from saved logs; re-runs only the review stage with the current reviewer. A/B comparison of reviewer versions without re-executing queries.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= ENTRY POINTS -->
+  <h2 id="entry-points">Entry Points &amp; CLI</h2>
+
+  <table>
+    <thead><tr><th>Script</th><th>Purpose</th><th>Usage</th></tr></thead>
+    <tbody>
+      <tr><td>app.py</td><td>Streamlit UI — Pipeline tab + Q&A tab</td><td><code>streamlit run app.py</code></td></tr>
+      <tr><td>run_agent.py</td><td>Interactive CLI query runner (Q&A mode)</td><td><code>python run_agent.py</code></td></tr>
+      <tr><td>run_corgi_pipeline.py</td><td>Run CORGI validation goals (1 or all 12)</td><td><code>python run_corgi_pipeline.py --id FD03 --verbose</code></td></tr>
+      <tr><td>validation_itunes_v2.py</td><td>iTunes validation suite (24 queries, multi-run). Primary regression test for agent.py / synthesiser.py changes.</td><td><code>python validation_itunes_v2.py</code></td></tr>
+      <tr><td>validation.py</td><td>Sales dataset validation (16 queries)</td><td><code>python validation.py</code></td></tr>
+      <tr><td>test_followup_quality.py</td><td>Follow-up analysis quality test — paired primary + next-step runs. <code>--with-context</code> injects format_prior_context() output; <code>--without-context</code> is baseline.</td><td><code>python test_followup_quality.py --without-context</code></td></tr>
+      <tr><td>debug_pipeline.py</td><td>Replicates Streamlit pipeline outside Streamlit for clean debugging</td><td><code>python debug_pipeline.py</code></td></tr>
+      <tr><td>export_for_evaluation.py</td><td>Assemble pipeline JSONL logs into structured eval document</td><td><code>python export_for_evaluation.py --latest --split --since 2026-03-24T19</code></td></tr>
+      <tr><td>analyse_consistency.py</td><td>Multi-run consistency analysis across JSONL logs</td><td><code>python analyse_consistency.py --since 2026-03-25 --out report.md</code></td></tr>
+      <tr><td>generate_run_report.py</td><td>Generate collapsible HTML report from pipeline logs</td><td><code>python generate_run_report.py</code></td></tr>
+      <tr><td>replay_review.py</td><td>Replay saved synthesis logs through current reviewer (A/B comparison)</td><td><code>python replay_review.py</code></td></tr>
+      <tr><td>test_classifier.py</td><td>34-query classifier comparison across models</td><td><code>python test_classifier.py</code></td></tr>
+    </tbody>
+  </table>
+
+  <h4>Overnight Consistency Test</h4>
+<pre><code><span class="cmt"># Run pipeline multiple times and analyse variation</span>
+caffeinate -i bash run_overnight.sh
+python analyse_consistency.py --since 2026-03-25 --out consistency_report.md
+
+<span class="cmt"># Run with preset plans (executor model comparison)</span>
+python run_corgi_pipeline.py \
+  --executor qwen2.5-coder:32b \
+  --use-plans-from <span class="str">"pipeline_logs/pipeline_*_20260409.jsonl"</span></code></pre>
+
+  <h4>Remote Ollama Setup (Mac Studio)</h4>
+<pre><code><span class="cmt"># Mac Studio — run in order after restart</span>
+launchctl setenv OLLAMA_HOST <span class="str">"0.0.0.0"</span>
+launchctl setenv OLLAMA_NUM_PARALLEL <span class="num">2</span>
+<span class="cmt"># Then: quit and reopen Ollama from menu bar</span>
+
+<span class="cmt"># MacBook Air — Claude Code session</span>
+export OLLAMA_HOST=http://&lt;mac-studio-tailscale-ip&gt;:<span class="num">11434</span>
+conda activate local_llm
+streamlit run app.py</code></pre>
+
+  <!-- ======================================================= DEPS -->
+  <h2 id="deps">Dependencies</h2>
+
+  <table>
+    <thead><tr><th>Package</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>ollama</td><td>LLM inference client. All model calls route through <code>ollama.Client(host=OLLAMA_HOST)</code>.</td></tr>
+      <tr><td>chromadb</td><td>Embedded vector store. One persistent store per dataset (two collections each: metadata + dict).</td></tr>
+      <tr><td>langchain_ollama</td><td>Embedding function wrapper for ChromaDB ↔ Ollama embedding integration.</td></tr>
+      <tr><td>pandas</td><td>Dataframe for all dataset operations. Used in generated executor code and schema extraction.</td></tr>
+      <tr><td>numpy</td><td>Numerical operations in generated code.</td></tr>
+      <tr><td>matplotlib</td><td>Chart generation in generated code. Figure bytes captured from <code>plt.savefig()</code> in-memory.</td></tr>
+      <tr><td>streamlit</td><td>Web UI. Pipeline tab + Q&A tab.</td></tr>
+    </tbody>
+  </table>
+
+<pre><code><span class="cmt"># Install</span>
+conda activate local_llm
+pip install pandas numpy matplotlib chromadb langchain_ollama ollama streamlit</code></pre>
+
+  <footer>
+    Agentic Data Analyst · Technical Reference · Local-only, privacy-preserving · All inference via Ollama
+  </footer>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background:      '#161b22',
+      primaryColor:    '#21262d',
+      primaryTextColor:'#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor:       '#8b949e',
+      secondaryColor:  '#21262d',
+      tertiaryColor:   '#161b22',
+    },
+    flowchart: { curve: 'basis', nodeSpacing: 40, rankSpacing: 50 }
+  });
+
+  // Sidebar active-link tracking on scroll
+  const headings = document.querySelectorAll('h2[id], h3[id]');
+  const links = document.querySelectorAll('#sidebar nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0% -80% 0%' });
+
+  headings.forEach(h => observer.observe(h));
+</script>
+
+</body>
+</html>
