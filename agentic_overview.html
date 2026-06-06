@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic AI Analyst — How It Works</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --col-loop:    #e8f0fe;
+      --col-chart:   #fff3e0;
+      --col-review:  #ede7f6;
+      --col-tool:    #e0f7fa;
+
+      --border-loop:    #3b82f6;
+      --border-chart:   #f59e0b;
+      --border-review:  #9575cd;
+      --border-tool:    #00acc1;
+
+      --text:    #1a1a2e;
+      --muted:   #6c757d;
+      --surface: #f8f9fa;
+      --white:   #ffffff;
+      --accent:  #2563eb;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--white);
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      height: 52px;
+    }
+    nav .brand { font-weight: 700; font-size: 1rem; color: var(--text); text-decoration: none; letter-spacing: -0.01em; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.875rem; transition: color .15s; }
+    nav a:hover { color: var(--accent); }
+    nav .spacer { flex: 1; }
+
+    /* ── LAYOUT ── */
+    .section { padding: 80px 2rem; max-width: 860px; margin: 0 auto; }
+    .section + .section { border-top: 1px solid #e5e7eb; }
+    .section.wide { max-width: 1040px; }
+
+    h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+    h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 1rem; }
+    h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    p  { margin-bottom: 1rem; color: #374151; }
+    p:last-child { margin-bottom: 0; }
+
+    .lead { font-size: 1.2rem; color: #cbd5e1; margin-top: 1.25rem; max-width: 680px; line-height: 1.6; }
+
+    /* ── HERO ── */
+    #hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #1e3a5f 100%);
+      color: white;
+      padding: 100px 2rem 90px;
+    }
+    #hero .inner { max-width: 860px; margin: 0 auto; }
+    #hero h1 { color: white; }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #e2e8f0;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── CONTRAST COMPARISON ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 560px) { .compare-grid { grid-template-columns: 1fr; } }
+
+    .compare-card {
+      background: var(--surface);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .compare-card.highlight {
+      background: var(--col-loop);
+      border-color: var(--border-loop);
+    }
+    .compare-card .card-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .compare-card.highlight .card-label { color: #1d4ed8; }
+    .compare-card h3 { font-size: 0.97rem; margin-bottom: 0.5rem; }
+    .compare-card p  { font-size: 0.875rem; color: #374151; margin: 0; }
+    .compare-card ul {
+      margin: 0.5rem 0 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .compare-card ul li {
+      font-size: 0.875rem;
+      color: #374151;
+      padding-left: 1.2rem;
+      position: relative;
+    }
+    .compare-card ul li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── LOOP DIAGRAM ── */
+    .diagram-wrap {
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      margin-top: 1rem;
+      overflow-x: auto;
+    }
+
+    .fc-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 340px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .fc-io {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #374151;
+      background: #f1f5f9;
+      border: 1.5px solid #94a3b8;
+      border-radius: 999px;
+      padding: 0.35rem 1.25rem;
+    }
+
+    .fc-arr {
+      font-size: 1.2rem;
+      color: #9ca3af;
+      line-height: 1;
+      padding: 0.2rem 0;
+      user-select: none;
+    }
+
+    /* Loop group — dashed border to signal the cycle */
+    .fc-group {
+      width: 100%;
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      padding: 0.875rem 0.875rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .fc-g-loop   { background: var(--col-loop);   border: 1.5px dashed var(--border-loop); }
+    .fc-g-chart  { background: var(--col-chart);  border-color: var(--border-chart); }
+    .fc-g-review { background: var(--col-review); border-color: var(--border-review); }
+
+    .fc-group-tag {
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      padding: 0 6px;
+      border-radius: 3px;
+    }
+
+    .fc-g-loop   .fc-group-tag { background: var(--col-loop);   color: #1d4ed8; }
+    .fc-g-chart  .fc-group-tag { background: var(--col-chart);  color: #92400e; }
+    .fc-g-review .fc-group-tag { background: var(--col-review); color: #4527a0; }
+
+    .fc-box {
+      background: white;
+      border: 1.5px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.38rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      text-align: center;
+      color: #374151;
+      min-width: 210px;
+    }
+
+    /* Tool choice pills inside loop */
+    .fc-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      justify-content: center;
+      margin: 0.25rem 0;
+    }
+    .fc-tool-pill {
+      background: white;
+      border: 1.5px solid var(--border-tool);
+      color: #006064;
+      border-radius: 999px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .fc-tool-pill.exit {
+      border-color: var(--border-loop);
+      color: #1d4ed8;
+    }
+
+    /* Loop-back row */
+    .fc-loop-back {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.1rem;
+    }
+    .fc-loop-back-lbl {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #6b7280;
+    }
+    .fc-loop-arrow {
+      font-size: 0.85rem;
+      color: var(--border-loop);
+    }
+
+    .fc-dec-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: center;
+    }
+
+    .fc-diamond {
+      width: 96px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+    .fc-d-loop   { background: #93c5fd; color: #1e3a8a; }
+    .fc-d-review { background: #9575cd; color: #fff; }
+
+    .fc-branch {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
+    .fc-branch-line { width: 18px; height: 1.5px; background: #9ca3af; }
+    .fc-branch-lbl { font-size: 0.68rem; font-weight: 600; color: #6b7280; white-space: nowrap; }
+    .fc-rewrite {
+      font-size: 0.72rem;
+      color: #4527a0;
+      background: white;
+      border: 1px solid #c4b5fd;
+      border-radius: 6px;
+      padding: 0.22rem 0.55rem;
+      white-space: nowrap;
+    }
+
+    .fc-yes {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      padding: 0.1rem 0;
+    }
+    .fc-yes-lbl { font-size: 0.67rem; font-weight: 600; color: #6b7280; margin-bottom: 1px; }
+    .fc-yes-arr { font-size: 1.1rem; color: #9ca3af; line-height: 1; }
+
+    .fc-out {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .fc-v {
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1.5px solid;
+    }
+    .fc-pass { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .fc-rev  { background: #fef9c3; border-color: #fbbf24; color: #92400e; }
+    .fc-fail { background: #fef2f2; border-color: #f87171; color: #991b1b; }
+
+    /* ── TOOL ACCORDION ── */
+    .accordion { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+    details.stage {
+      border-radius: 10px;
+      border: 1.5px solid #e5e7eb;
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+    details.stage[open] { border-color: #9ca3af; }
+
+    details.stage summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      user-select: none;
+    }
+    details.stage summary::-webkit-details-marker { display: none; }
+
+    .stage-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .num-tool   { background: var(--col-tool);   color: #006064;  border: 1.5px solid var(--border-tool); }
+    .num-synth  { background: var(--col-loop);   color: #1d4ed8;  border: 1.5px solid var(--border-loop); }
+
+    .stage-title { font-weight: 600; font-size: 1rem; flex: 1; }
+    .stage-subtitle { font-size: 0.82rem; color: var(--muted); }
+
+    .chevron {
+      width: 20px; height: 20px;
+      flex-shrink: 0;
+      transition: transform .2s;
+      color: var(--muted);
+    }
+    details[open] .chevron { transform: rotate(90deg); }
+
+    .stage-body {
+      padding: 0 1.25rem 1.25rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .stage-body p { font-size: 0.95rem; }
+    .stage-body p:first-child { margin-top: 1rem; }
+
+    .io-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 560px) { .io-row { grid-template-columns: 1fr; } }
+
+    .io-box {
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      font-size: 0.875rem;
+    }
+    .io-box .io-label { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
+
+    /* ── PHASE TIMELINE ── */
+    .phase-timeline {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .phase-block {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+      position: relative;
+    }
+    .phase-block + .phase-block { margin-top: 1.5rem; }
+
+    @media (max-width: 560px) { .phase-block { grid-template-columns: 1fr; } }
+
+    .phase-marker {
+      text-align: right;
+      padding-top: 0.15rem;
+    }
+    .phase-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .phase-limit {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .phase-content {
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+    .phase-content.phase-loop   { border-color: var(--border-loop);   background: var(--col-loop); }
+    .phase-content.phase-chart  { border-color: var(--border-chart);  background: var(--col-chart); }
+    .phase-content.phase-review { border-color: var(--border-review); background: var(--col-review); }
+
+    .phase-content h3 { margin-bottom: 0.4rem; font-size: 0.97rem; }
+    .phase-content p  { font-size: 0.9rem; margin-bottom: 0; }
+
+    .phase-connector {
+      width: 2px;
+      height: 1.5rem;
+      background: #d1d5db;
+      margin: 0.25rem 0 0.25rem 119px;
+      position: relative;
+    }
+    .phase-connector::after {
+      content: "↓";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+
+    /* ── QUALITY CHECKS ── */
+    .flag-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .flag-card {
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      border: 1.5px solid transparent;
+      font-size: 0.9rem;
+    }
+    .flag-card.correctable { background: #fff5f5; border-color: #fca5a5; }
+    .flag-card.advisory    { background: #fffbeb; border-color: #fcd34d; }
+    .flag-card .flag-label { font-weight: 700; font-size: 0.82rem; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
+    .flag-card.correctable .flag-label { color: #b91c1c; }
+    .flag-card.advisory    .flag-label { color: #92400e; }
+    .flag-card p { margin: 0; color: #374151; }
+
+    .confidence-gate-note {
+      margin-top: 1.5rem;
+      background: var(--col-loop);
+      border: 1.5px solid var(--border-loop);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      font-size: 0.92rem;
+      color: #1e3a8a;
+    }
+
+    .revision-note {
+      margin-top: 1rem;
+      background: var(--col-review);
+      border: 1.5px solid var(--border-review);
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      font-size: 0.92rem;
+      color: #2d1b69;
+    }
+
+    /* ── EXAMPLE OUTPUT ── */
+    .finding-card {
+      background: var(--white);
+      border: 1.5px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+    .finding-header {
+      background: var(--surface);
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .finding-title { font-weight: 700; font-size: 1rem; }
+    .confidence-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1.5px solid;
+    }
+    .conf-high   { background: #dcfce7; border-color: #4ade80; color: #166534; }
+    .conf-medium { background: #fef9c3; border-color: #fbbf24; color: #92400e; }
+
+    .finding-body { padding: 1.25rem; }
+    .finding-body p { font-size: 0.95rem; }
+
+    .finding-meta {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .meta-row { font-size: 0.85rem; display: flex; gap: 0.5rem; }
+    .meta-label { font-weight: 600; color: var(--muted); min-width: 120px; }
+    .meta-value { color: #374151; }
+
+    .finding-note {
+      margin-top: 1.25rem;
+      padding: 0.875rem 1rem;
+      background: var(--surface);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* Turn trace */
+    .turn-trace {
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .turn-trace-header {
+      padding: 0.6rem 1rem;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .turn-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.84rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .turn-row:last-child { border-bottom: none; }
+    .turn-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      min-width: 32px;
+      padding-top: 2px;
+    }
+    .turn-tool {
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 2px 8px;
+      min-width: 110px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .tt-exec  { background: #d1fae5; color: #065f46; }
+    .tt-rec   { background: var(--col-loop); color: #1d4ed8; }
+    .tt-synth { background: #ede7f6; color: #4527a0; }
+    .turn-desc { color: #374151; flex: 1; }
+
+    /* ── GUARDRAILS ── */
+    .runs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .runs-block {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 620px) { .runs-block { grid-template-columns: 1fr; } }
+    .runs-block .runs-label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      padding-top: 0.15rem;
+    }
+    .runs-block .runs-content h3 { margin-bottom: 0.5rem; }
+    .runs-block .runs-content p  { font-size: 0.92rem; }
+
+    .guardrail-list {
+      list-style: none;
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .guardrail-list li {
+      font-size: 0.9rem;
+      padding-left: 1.4rem;
+      position: relative;
+      color: #374151;
+    }
+    .guardrail-list li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .guardrail-list .label { font-weight: 600; color: var(--text); }
+
+    .runs-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 2rem 0 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 2rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="brand" href="#hero">AI Analyst · Agentic</a>
+  <a href="#how-it-works">How it works</a>
+  <a href="#tools">The tools</a>
+  <a href="#phases">How a run unfolds</a>
+  <a href="#quality">Quality checks</a>
+  <a href="#example">Example output</a>
+  <a href="#guardrails">Under the hood</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="inner">
+    <div class="badge">Self-directing &nbsp;·&nbsp; Local &nbsp;·&nbsp; Private</div>
+    <h1>Agentic AI Analyst</h1>
+    <p class="lead">
+      A self-directing analysis mode where the AI decides what to investigate, writes and runs its own
+      code, and writes up findings when it judges it has enough evidence. No fixed plan. No manual steps.
+    </p>
+  </div>
+</section>
+
+<!-- WHAT'S DIFFERENT -->
+<section id="how-it-works" class="section">
+  <h2>A different kind of analysis</h2>
+  <p>
+    The standard pipeline follows a fixed sequence: a planner breaks the goal into questions, an executor
+    runs them in order, and a synthesiser writes up the results. The agentic pipeline works differently —
+    the model is given a goal and a set of tools, and decides for itself how to investigate it.
+  </p>
+  <p>
+    Instead of running a pre-determined list of queries, the agentic model explores the data iteratively.
+    It starts an investigation, sees the result, then decides what to look at next — exactly as an analyst
+    would. If an early result reveals something unexpected, it can follow that thread. If a query produces
+    nothing useful, it moves on.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="card-label">Standard pipeline</div>
+      <h3>Plan, then execute</h3>
+      <p>A planner writes a fixed list of questions upfront. The executor runs them in order. Analysis is structured but follows a predetermined path.</p>
+      <ul>
+        <li>Questions fixed before any data is seen</li>
+        <li>Each stage hands off to the next</li>
+        <li>Efficient for well-defined goals</li>
+      </ul>
+    </div>
+    <div class="compare-card highlight">
+      <div class="card-label">Agentic pipeline</div>
+      <h3>Investigate, then synthesise</h3>
+      <p>The model explores the data iteratively, choosing each next step based on what it just found. It synthesises when it judges it has enough evidence.</p>
+      <ul>
+        <li>Adapts as evidence accumulates</li>
+        <li>Can follow unexpected threads</li>
+        <li>Better suited to open-ended goals</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- THE LOOP DIAGRAM -->
+<section id="loop" class="section wide">
+  <h2>The agent loop</h2>
+  <p>
+    The model runs in a loop. Each turn it reviews the evidence so far, chooses a tool to call,
+    observes the result, and decides whether to continue or to synthesise. The loop runs until the model
+    calls <code>synthesise</code> or the turn budget is exhausted.
+  </p>
+
+  <div class="diagram-wrap">
+    <div class="fc-flow">
+
+      <div class="fc-io">Your goal + column schema + data dictionary</div>
+      <div class="fc-arr">↓</div>
+
+      <!-- Analysis loop -->
+      <div class="fc-group fc-g-loop">
+        <div class="fc-group-tag">Analysis loop &nbsp;·&nbsp; up to 25 turns</div>
+
+        <div class="fc-box">Review evidence accumulated so far</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-box">Choose a tool to call</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-tools">
+          <span class="fc-tool-pill">execute_code</span>
+          <span class="fc-tool-pill">record_finding</span>
+          <span class="fc-tool-pill">retrieve_context</span>
+          <span class="fc-tool-pill">get_schema</span>
+          <span class="fc-tool-pill exit">synthesise ↗</span>
+        </div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-box">Observe result</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-dec-row">
+          <div class="fc-diamond fc-d-loop">Enough<br>evidence?</div>
+          <div class="fc-branch">
+            <div class="fc-branch-line"></div>
+            <span class="fc-branch-lbl">No →</span>
+            <span style="font-size:0.72rem;color:#3b82f6;font-weight:600">↺ next turn</span>
+          </div>
+        </div>
+        <div class="fc-yes">
+          <span class="fc-yes-lbl">Yes — call synthesise</span>
+          <span class="fc-yes-arr">↓</span>
+        </div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Charting phase -->
+      <div class="fc-group fc-g-chart">
+        <div class="fc-group-tag">Charting phase &nbsp;·&nbsp; up to 7 turns</div>
+        <div class="fc-box">Generate charts from synthesis + data</div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <!-- Review phase -->
+      <div class="fc-group fc-g-review">
+        <div class="fc-group-tag">Review &amp; revision</div>
+        <div class="fc-box">Check findings against evidence</div>
+        <div class="fc-arr">↓</div>
+        <div class="fc-dec-row">
+          <div class="fc-diamond fc-d-review">Problems<br>found?</div>
+          <div class="fc-branch">
+            <div class="fc-branch-line"></div>
+            <span class="fc-branch-lbl">Yes →</span>
+            <div class="fc-rewrite">Revise synthesis ↺ (1 round)</div>
+          </div>
+        </div>
+        <div class="fc-yes">
+          <span class="fc-yes-lbl">No / after revision</span>
+          <span class="fc-yes-arr">↓</span>
+        </div>
+      </div>
+
+      <div class="fc-arr">↓</div>
+
+      <div class="fc-out">
+        <span class="fc-v fc-pass">PASS</span>
+        <span class="fc-v fc-rev">REVIEW</span>
+        <span class="fc-v fc-fail">FAIL</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- THE TOOLS -->
+<section id="tools" class="section">
+  <h2>The tools</h2>
+  <p>
+    The model's understanding of what it can do comes from tool definitions — structured descriptions
+    of each available action. There are five tools. Four are investigation tools; the fifth ends the analysis.
+  </p>
+
+  <div class="accordion">
+
+    <!-- execute_code -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-tool" style="font-size:0.7rem">{ }</div>
+        <div>
+          <div class="stage-title">execute_code</div>
+          <div class="stage-subtitle">Write and run Python against the dataset</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          The primary investigation tool. The model writes Python using pandas — filtering, grouping,
+          correlating, running statistical tests — and the code executes in a sandboxed environment against
+          the real dataset. The result (output, any tables, error if it failed) comes back on the next turn.
+        </p>
+        <p>
+          Common scientific libraries are pre-loaded into the sandbox: NumPy, SciPy, and statsmodels
+          are all available without needing an import. The model can run regressions, hypothesis tests,
+          and distribution checks as naturally as basic aggregations.
+        </p>
+        <p>
+          A single <code>execute_code</code> call can also generate a chart — the model decides
+          whether a visualisation would be useful for a given query. Charts are also generated
+          in a dedicated post-synthesis charting phase after the analysis is complete.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Input</div>
+            A Python code string, using <code>df</code> to refer to the loaded dataset
+          </div>
+          <div class="io-box">
+            <div class="io-label">Returns</div>
+            Stdout output, any printed DataFrames, any chart generated, or an error message
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- get_schema -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-tool" style="font-size:0.7rem">≡</div>
+        <div>
+          <div class="stage-title">get_schema</div>
+          <div class="stage-subtitle">Inspect the dataset's column structure and data quality summary</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          Returns the dataset schema: column names, data types, non-null counts, and a basic quality
+          summary for each field. The schema is also included in the system prompt at the start of
+          each run, so the model typically calls this only to recheck details mid-analysis rather than
+          to orient itself from scratch.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Input</div>
+            None required
+          </div>
+          <div class="io-box">
+            <div class="io-label">Returns</div>
+            Column-level schema with types, row counts, and basic completeness information
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- retrieve_context -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-tool" style="font-size:0.7rem">↗</div>
+        <div>
+          <div class="stage-title">retrieve_context</div>
+          <div class="stage-subtitle">Query the data dictionary for column descriptions and field definitions</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          Runs a semantic search against the dataset's data dictionary — a library of column descriptions,
+          categorical field definitions, and known data quality notes. The model uses this to clarify
+          what a field means before using it in an analysis.
+        </p>
+        <p>
+          In practice, the plain-text data dictionary is loaded into the system prompt at run start,
+          so the model typically doesn't need to call this tool explicitly. It's available for deeper
+          look-ups when the model wants more detail than the summary in the prompt provides.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Input</div>
+            A plain-English query, e.g. "what does room_type represent?"
+          </div>
+          <div class="io-box">
+            <div class="io-label">Returns</div>
+            Ranked chunks from the data dictionary most relevant to the query
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- record_finding -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-tool" style="font-size:0.7rem">📌</div>
+        <div>
+          <div class="stage-title">record_finding</div>
+          <div class="stage-subtitle">Anchor key numbers mid-analysis before the context moves on</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          After completing a significant piece of analysis — computing a trend, identifying a top group,
+          running a statistical test — the model calls <code>record_finding</code> to pin the specific
+          numbers it just found. Each recorded finding is returned on every subsequent turn, so key
+          results stay available throughout the analysis without the model needing to re-run queries
+          it already completed.
+        </p>
+        <p>
+          This matters because the analysis loop can run for many turns across many dimensions. Without
+          anchoring, exact figures discovered early can drift or be misquoted in the synthesis. The
+          tool's rejection logic enforces that the <code>finding</code> field is populated with real
+          numbers — an empty call is rejected with a directive to copy the result from the immediately
+          preceding output.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Input</div>
+            A short label (the dimension) and a finding with specific numbers copied from the preceding output
+          </div>
+          <div class="io-box">
+            <div class="io-label">Returns</div>
+            All findings recorded so far in the current run, returned on every subsequent call
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <!-- synthesise -->
+    <details class="stage">
+      <summary>
+        <div class="stage-num num-synth" style="font-size:0.7rem">✎</div>
+        <div>
+          <div class="stage-title">synthesise</div>
+          <div class="stage-subtitle">Write up findings and close the analysis loop</div>
+        </div>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </summary>
+      <div class="stage-body">
+        <p>
+          Called when the model judges it has investigated enough dimensions to address the goal.
+          The model writes a structured summary that draws on its accumulated observations and any
+          anchored findings — explaining what the data shows, with specific figures, and noting where
+          the data was insufficient or ambiguous.
+        </p>
+        <p>
+          Calling <code>synthesise</code> ends the analysis loop. The synthesis passes directly to
+          the charting phase and then to the reviewer. The model cannot make further code calls after
+          synthesising — observations that weren't captured before this call are not available for review.
+        </p>
+        <div class="io-row">
+          <div class="io-box">
+            <div class="io-label">Input</div>
+            All accumulated observations from the analysis loop
+          </div>
+          <div class="io-box">
+            <div class="io-label">Returns</div>
+            A written synthesis — the structured output that the reviewer checks and the user sees
+          </div>
+        </div>
+      </div>
+    </details>
+
+  </div>
+</section>
+
+<!-- HOW A RUN UNFOLDS -->
+<section id="phases" class="section">
+  <h2>How a run unfolds</h2>
+  <p>
+    Every agentic run passes through three phases in sequence. The analysis loop is where the
+    investigation happens; the charting phase adds visualisations; the review phase checks
+    the written output for errors.
+  </p>
+
+  <div class="phase-timeline">
+
+    <div class="phase-block">
+      <div class="phase-marker">
+        <div class="phase-label">Phase 1</div>
+        <div class="phase-limit">Up to 25 turns</div>
+      </div>
+      <div class="phase-content phase-loop">
+        <h3>Analysis loop</h3>
+        <p>
+          The model investigates the goal by calling tools in sequence — running code, recording key
+          numbers, following threads as they emerge. Each turn it sees all prior observations and
+          decides what to do next. When it judges the analysis complete, it calls <code>synthesise</code>
+          to write up the findings and exit the loop.
+        </p>
+      </div>
+    </div>
+
+    <div class="phase-connector"></div>
+
+    <div class="phase-block">
+      <div class="phase-marker">
+        <div class="phase-label">Phase 2</div>
+        <div class="phase-limit">Up to 7 turns</div>
+      </div>
+      <div class="phase-content phase-chart">
+        <h3>Charting phase</h3>
+        <p>
+          After synthesising, the model enters a separate charting phase with the synthesis and column
+          schema in context. It generates any charts that would help illustrate the findings —
+          bar charts, time series, distributions — then stops when done. Charts are embedded directly
+          in the HTML report alongside the written output.
+        </p>
+      </div>
+    </div>
+
+    <div class="phase-connector"></div>
+
+    <div class="phase-block">
+      <div class="phase-marker">
+        <div class="phase-label">Phase 3</div>
+        <div class="phase-limit">1 round</div>
+      </div>
+      <div class="phase-content phase-review">
+        <h3>Review &amp; revision</h3>
+        <p>
+          A reviewer model checks the synthesis against the accumulated observations. Claims that can't
+          be traced to the evidence, missing qualifications, or known analytical traps are flagged.
+          If correctable problems are found, a single revision round is triggered — the model rewrites
+          the affected sections. The revised synthesis is then reviewed once more to confirm the
+          issues were resolved.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- QUALITY CHECKS -->
+<section id="quality" class="section">
+  <h2>Quality checks</h2>
+  <p>
+    The reviewer classifies every problem it finds into one of six types. The type determines what
+    happens next: correctable problems trigger a revision round; advisory problems are flagged
+    without blocking the output.
+  </p>
+
+  <div class="flag-grid">
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ False Claim</div>
+      <p>The synthesis states a number or direction that the observations contradict. The section is rewritten to reflect what the data actually shows.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Unsupported Magnitude</div>
+      <p>Words like "dominates" or "the majority" appear without a percentage to back them. The claim is requalified with the actual figures.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Missing Caveat</div>
+      <p>The conclusion is directionally correct but omits a material qualification — for example, basing a comparison on fewer than 15 records without noting the small sample.</p>
+    </div>
+    <div class="flag-card correctable">
+      <div class="flag-label">✗ Analytical Pitfall</div>
+      <p>A known statistical trap has been triggered — for example, reporting a strong correlation between a component and its total (which is mathematically guaranteed, not analytically informative).</p>
+    </div>
+    <div class="flag-card advisory">
+      <div class="flag-label">⚠ Data Quality Concern</div>
+      <p>The data limits confidence in the finding — for example, fewer than 15 records in a comparison group, or more than 10% missing values in a key field. Not correctable; flagged for the reader.</p>
+    </div>
+    <div class="flag-card advisory">
+      <div class="flag-label">⚠ Scope Gap</div>
+      <p>A dimension of the original goal was not investigated, typically because the data wasn't sufficient to support it. Flagged so the reader knows what was left out.</p>
+    </div>
+  </div>
+
+  <div class="confidence-gate-note">
+    <strong>Flags require evidence, not suspicion.</strong>
+    Every correctable flag must include a direct quote from the synthesis, a direct quote from the
+    observations that contradicts it, and a confidence score. Only flags with a confidence of 0.8 or
+    above trigger revision — lower-confidence concerns are recorded and shown in the report but do
+    not cause a rewrite. This prevents a reviewer that is merely uncertain from triggering a revision
+    that makes the synthesis worse.
+  </div>
+
+  <div class="revision-note">
+    <strong>Confidence is adjusted after review.</strong>
+    Findings corrected for a False Claim or Pitfall are capped at Low confidence. Findings with
+    Unsupported Magnitude, Missing Caveat, or Data Quality concerns are capped at Medium.
+    High confidence is reserved for findings that passed review without correction.
+  </div>
+</section>
+
+<!-- EXAMPLE OUTPUT -->
+<section id="example" class="section">
+  <h2>Example output</h2>
+  <p>
+    This is an illustrative view of how the agentic model works through a goal — a short turn trace
+    followed by the kind of finding it produces.
+  </p>
+
+  <div class="turn-trace">
+    <div class="turn-trace-header">Illustrative turn trace — goal: "What drives high-value orders?"</div>
+    <div class="turn-row">
+      <span class="turn-num">T01</span>
+      <span class="turn-tool tt-exec">execute_code</span>
+      <span class="turn-desc">Distribution of order values — mean, median, quartiles, skew</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T02</span>
+      <span class="turn-tool tt-rec">record_finding</span>
+      <span class="turn-desc">Anchored: mean £42.10, median £31.80, skew 2.1 — right-skewed, top 10% above £95</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T03</span>
+      <span class="turn-tool tt-exec">execute_code</span>
+      <span class="turn-desc">Breakdown of order value by category — mean and count per group</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T04</span>
+      <span class="turn-tool tt-exec">execute_code</span>
+      <span class="turn-desc">Breakdown by day of week — weekend vs weekday comparison</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T05</span>
+      <span class="turn-tool tt-rec">record_finding</span>
+      <span class="turn-desc">Anchored: weekends £47.20 mean vs weekdays £35.10 — 34% higher; n=1,204 weekend orders</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T06</span>
+      <span class="turn-tool tt-exec">execute_code</span>
+      <span class="turn-desc">Correlation of quantity and discount with order value — Spearman coefficients</span>
+    </div>
+    <div class="turn-row">
+      <span class="turn-num">T07</span>
+      <span class="turn-tool tt-synth">synthesise</span>
+      <span class="turn-desc">Model judges three dimensions covered — writes up findings</span>
+    </div>
+  </div>
+
+  <div class="finding-card">
+    <div class="finding-header">
+      <div class="finding-title">Weekend orders generate 34% higher average basket value</div>
+      <span class="confidence-badge conf-medium">Medium confidence</span>
+    </div>
+    <div class="finding-body">
+      <p>
+        Orders placed on Saturday and Sunday show a mean basket value of £47.20, compared to £35.10
+        on weekdays — a difference of 34%. This pattern holds across all product categories and is not
+        explained by order volume (weekday orders are 2.4× more frequent, so the weekend uplift is
+        not a volume effect). Order value is right-skewed overall (skew 2.1), with the top 10% of
+        orders above £95 — the weekend uplift appears partly driven by this high-value tail.
+      </p>
+      <div class="finding-meta">
+        <div class="meta-row">
+          <span class="meta-label">Caveat</span>
+          <span class="meta-value">Weekend group is smaller (1,204 orders vs 2,891 weekday). Pattern is consistent but based on a narrower sample.</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Review verdict</span>
+          <span class="meta-value">PASS — all figures traced to observations; no correctable flags raised</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="finding-note">
+    Illustrative example. The turn trace shows the actual pattern of tool calls — investigation, anchoring
+    key numbers, then synthesis — rather than a fixed list of pre-planned queries. Confidence level,
+    caveats, and review verdict are all generated by the system, not added manually.
+  </p>
+</section>
+
+<!-- UNDER THE HOOD -->
+<section id="guardrails" class="section">
+  <h2>Under the hood</h2>
+  <p>
+    Several mechanisms shape how the agentic model runs — some borrowed from the standard pipeline,
+    others specific to the loop-based architecture.
+  </p>
+
+  <div class="runs-grid">
+
+    <!-- PRIVACY -->
+    <div class="runs-block">
+      <div class="runs-label">Privacy by design</div>
+      <div class="runs-content">
+        <h3>Your data and the AI models never leave your system</h3>
+        <p>
+          Like the standard pipeline, the agentic mode runs entirely on local hardware. The language
+          models are downloaded and run via Ollama. No data is transmitted to an external API at any point —
+          not the dataset, not the goal text, not the observations. Everything stays on your machine.
+        </p>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- SANDBOX -->
+    <div class="runs-block">
+      <div class="runs-label">Sandboxed execution</div>
+      <div class="runs-content">
+        <h3>Code runs in a restricted environment, not a general Python interpreter</h3>
+        <p>
+          Every <code>execute_code</code> call runs in the same sandbox used by the standard pipeline.
+          The model can only access the specific dataset file; it cannot read other files on your system,
+          make network calls, or write to disk. Each code call is isolated — code from one turn cannot
+          affect the next.
+        </p>
+        <ul class="guardrail-list">
+          <li><span class="label">Data access.</span> Only the target CSV is accessible. No other files.</li>
+          <li><span class="label">No network.</span> The sandbox has no outbound network access.</li>
+          <li><span class="label">Isolated turns.</span> Each call has a fresh execution context; state does not bleed between turns.</li>
+          <li><span class="label">Blocked patterns.</span> File writes, system calls, and subprocess launches are intercepted before execution.</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- TURN BUDGET + REPEAT GUARD -->
+    <div class="runs-block">
+      <div class="runs-label">Loop controls</div>
+      <div class="runs-content">
+        <h3>Turn budget and repeat-loop guard keep runs on track</h3>
+        <p>
+          The analysis loop runs for a maximum of 25 turns. If the model hasn't synthesised by then,
+          the run ends and whatever evidence has been collected is written up.
+        </p>
+        <p>
+          A repeat-loop guard detects when the model submits identical code three turns in a row —
+          a pattern that indicates it has become stuck retrying a query that isn't working.
+          When this happens, the model receives a nudge to either move on to a different dimension
+          or call <code>synthesise</code> with the evidence it already has.
+        </p>
+        <ul class="guardrail-list">
+          <li><span class="label">Turn budget.</span> 25 turns for analysis, 7 for charting — set in config, overridable per run.</li>
+          <li><span class="label">Repeat guard.</span> 3 identical submissions triggers a redirect nudge.</li>
+          <li><span class="label">No-tool guard.</span> 2 consecutive turns with no tool call triggers an urgent nudge — prevents the model from narrating without acting.</li>
+        </ul>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- DATA DICTIONARY -->
+    <div class="runs-block">
+      <div class="runs-label">Data dictionary</div>
+      <div class="runs-content">
+        <h3>Column context loaded at the start of every run</h3>
+        <p>
+          The plain-text data dictionary — describing what each column means, what categorical values
+          represent, and how fields relate to each other — is embedded directly into the model's system
+          prompt at run start. The model begins with semantic understanding of the data, not just column
+          names and types.
+        </p>
+        <p>
+          This is particularly important for the agentic mode because there is no planner stage that
+          might otherwise reframe ambiguous columns. Without dictionary context, the model can
+          misinterpret field names and produce analyses that are technically correct but
+          semantically wrong.
+        </p>
+      </div>
+    </div>
+
+    <hr class="runs-divider">
+
+    <!-- MODEL FREEDOM VS GUARDRAILS -->
+    <div class="runs-block">
+      <div class="runs-label">Model freedom vs guardrails</div>
+      <div class="runs-content">
+        <h3>The model reasons freely; critical checks are deterministic</h3>
+        <p>
+          The agentic model is deliberately given more freedom than the standard pipeline's executor —
+          it chooses its own analytical path. But several operations remain deterministic:
+        </p>
+        <ul class="guardrail-list">
+          <li>
+            <span class="label">Confidence gate.</span>
+            Only reviewer flags with confidence ≥ 0.8 trigger a revision round. A flag that the
+            reviewer is uncertain about cannot force a rewrite that might make the synthesis worse.
+          </li>
+          <li>
+            <span class="label">Record finding enforcement.</span>
+            An empty <code>record_finding</code> call is rejected in code, not by the model.
+            The rejection message instructs the model to copy exact numbers from the preceding output
+            and call again immediately.
+          </li>
+          <li>
+            <span class="label">Bounded revision.</span>
+            The revision loop runs a maximum of one round. The model cannot enter an indefinite
+            correction cycle.
+          </li>
+          <li>
+            <span class="label">Chart deduplication.</span>
+            The charting phase tracks code submissions by hash. Identical code submitted twice is
+            blocked immediately — the model cannot repeat the same chart for remaining turns.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  AI Analyst &nbsp;·&nbsp; Agentic pipeline &nbsp;·&nbsp; Runs locally via Ollama &nbsp;·&nbsp; Built with Python, ChromaDB, and Streamlit
+</footer>
+
+</body>
+</html>
