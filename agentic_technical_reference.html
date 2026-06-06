@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentic Pipeline — Technical Reference</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0d1117;
+      --bg2:        #161b22;
+      --bg3:        #21262d;
+      --border:     #30363d;
+      --text:       #e6edf3;
+      --muted:      #8b949e;
+      --link:       #58a6ff;
+
+      --loop:   #388bfd;
+      --tools:  #39c5b8;
+      --ctx:    #ffa657;
+      --log:    #bc8cff;
+      --chart:  #e3a04b;
+      --rev:    #f78166;
+      --adapt:  #3fb950;
+      --cite:   #79c0ff;
+      --cfg:    #79c0ff;
+
+      --code-bg:    #161b22;
+      --code-border:#30363d;
+
+      --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", "Menlo", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; font-size: 15px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ---- SIDEBAR ---- */
+    #sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0 40px;
+    }
+
+    #sidebar .logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    #sidebar .logo .badge {
+      display: inline-block;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    #sidebar .logo h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    #sidebar nav a {
+      display: block;
+      padding: 5px 20px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    #sidebar nav a:hover { color: var(--text); border-left-color: var(--border); }
+
+    #sidebar nav .section-label {
+      padding: 12px 20px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    #sidebar nav a.active { color: var(--link); border-left-color: var(--link); }
+
+    /* ---- MAIN ---- */
+    main {
+      flex: 1;
+      min-width: 0;
+      padding: 48px 56px 80px;
+      max-width: 960px;
+    }
+
+    h1.page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+    .page-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 48px 0 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    h3 { font-size: 16px; font-weight: 600; color: var(--text); margin: 28px 0 10px; }
+    h4 { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 8px; }
+    p  { margin-bottom: 12px; font-size: 14px; color: #c9d1d9; }
+
+    /* ---- PILLS ---- */
+    .pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    .pill-loop   { background: rgba(56,139,253,0.15);  color: var(--loop);  border: 1px solid rgba(56,139,253,0.3); }
+    .pill-tools  { background: rgba(57,197,184,0.15);  color: var(--tools); border: 1px solid rgba(57,197,184,0.3); }
+    .pill-ctx    { background: rgba(255,166,87,0.15);  color: var(--ctx);   border: 1px solid rgba(255,166,87,0.3); }
+    .pill-log    { background: rgba(188,140,255,0.15); color: var(--log);   border: 1px solid rgba(188,140,255,0.3); }
+    .pill-chart  { background: rgba(227,160,75,0.15);  color: var(--chart); border: 1px solid rgba(227,160,75,0.3); }
+    .pill-rev    { background: rgba(247,129,102,0.15); color: var(--rev);   border: 1px solid rgba(247,129,102,0.3); }
+    .pill-adapt  { background: rgba(63,185,80,0.15);   color: var(--adapt); border: 1px solid rgba(63,185,80,0.3); }
+    .pill-cite   { background: rgba(121,192,255,0.15); color: var(--cite);  border: 1px solid rgba(121,192,255,0.3); }
+    .pill-cfg    { background: rgba(121,192,255,0.15); color: var(--cfg);   border: 1px solid rgba(121,192,255,0.3); }
+
+    /* ---- CODE BLOCKS ---- */
+    pre, code { font-family: var(--font-mono); font-size: 13px; }
+
+    code {
+      background: var(--bg3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #ffa657;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      line-height: 1.55;
+      margin: 12px 0 20px;
+    }
+
+    pre code { background: none; padding: 0; color: var(--text); font-size: 13px; }
+
+    .kw  { color: #ff7b72; }
+    .fn  { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .cmt { color: #8b949e; font-style: italic; }
+    .typ { color: #ffa657; }
+    .num { color: #79c0ff; }
+    .op  { color: #ff7b72; }
+
+    /* ---- DIAGRAM ---- */
+    .diagram-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 28px;
+      margin: 20px 0 28px;
+      overflow-x: auto;
+    }
+
+    /* ---- TABLES ---- */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 24px; }
+
+    thead th {
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      color: #c9d1d9;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+    tbody td:first-child { font-family: var(--font-mono); color: #ffa657; }
+    tbody tr:hover td { background: var(--bg2); }
+
+    /* ---- CALLOUTS ---- */
+    .callout {
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13px;
+      border-left: 3px solid;
+    }
+
+    .callout.note    { background: rgba(56,139,253,0.08);  border-color: var(--loop); color: #c9d1d9; }
+    .callout.warn    { background: rgba(255,166,87,0.08);  border-color: var(--ctx);  color: #c9d1d9; }
+    .callout.design  { background: rgba(188,140,255,0.08); border-color: var(--log);  color: #c9d1d9; }
+    .callout.danger  { background: rgba(247,129,102,0.08); border-color: var(--rev);  color: #c9d1d9; }
+    .callout.inactive{ background: rgba(139,148,158,0.08); border-color: var(--muted);color: #c9d1d9; }
+
+    .callout strong { color: var(--text); }
+
+    /* ---- SIGNATURE BLOCK ---- */
+    .sig {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 10px 0 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .sig .sig-fn     { color: #d2a8ff; font-weight: 600; }
+    .sig .sig-param  { color: #ffa657; }
+    .sig .sig-type   { color: var(--muted); font-size: 12px; }
+    .sig .sig-arrow  { color: var(--adapt); }
+    .sig .sig-return { color: var(--adapt); font-weight: 600; }
+
+    /* ---- FLAG TABLE ---- */
+    .flag-correctable    { color: var(--rev);  font-weight: 600; }
+    .flag-noncorrectable { color: var(--muted); font-weight: 600; }
+
+    /* ---- FOOTER ---- */
+    footer {
+      margin-top: 60px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .mermaid { font-family: var(--font-sans) !important; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<!-- ======================================================= SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="badge">agentic/ · local · Ollama</div>
+    <h1>Agentic Pipeline<br>Technical Reference</h1>
+  </div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#overview">System Design</a>
+    <a href="#loop-flow">Agent Loop Flow</a>
+
+    <div class="section-label">Modules</div>
+    <a href="#mod-agent-loop">agent_loop.py</a>
+    <a href="#mod-tools">tools.py</a>
+    <a href="#mod-context">context.py</a>
+    <a href="#mod-logging">logging.py</a>
+    <a href="#mod-charting">charting.py</a>
+    <a href="#mod-reviewer">reviewer.py</a>
+    <a href="#mod-adapters">adapters/</a>
+    <a href="#mod-citation">citation_verifier.py</a>
+
+    <div class="section-label">Data Structures</div>
+    <a href="#ds-agentconfig">AgentConfig</a>
+    <a href="#ds-agentresult">AgentResult</a>
+    <a href="#ds-reviewresult">AgenticReviewResult</a>
+
+    <div class="section-label">Design</div>
+    <a href="#tool-schemas">Tool Schemas</a>
+    <a href="#reviewer-flags">Reviewer Flags</a>
+    <a href="#confidence-gate">Confidence Gate</a>
+    <a href="#loop-guards">Loop Guards</a>
+    <a href="#sandbox-injection">Sandbox Injection</a>
+    <a href="#model-swap">Model Swap</a>
+
+    <div class="section-label">Config &amp; Logs</div>
+    <a href="#config-ref">Config Reference</a>
+    <a href="#log-schema">Log Schema</a>
+
+    <div class="section-label">Entry Points</div>
+    <a href="#entry-points">CLI &amp; Scripts</a>
+    <a href="#deps">Dependencies</a>
+  </nav>
+</aside>
+
+<!-- ======================================================= MAIN -->
+<main>
+
+  <h1 class="page-title">Agentic Pipeline — Technical Reference</h1>
+  <p class="page-subtitle">Architecture, function signatures, data structures, and design decisions for the <code>agentic/</code> module. For contributors and integrators.</p>
+
+  <!-- ======================================================= OVERVIEW -->
+  <h2 id="overview">System Design</h2>
+
+  <p>A tool-calling agent loop for open-ended data analysis. The model receives a goal, dataset schema, and data dictionary; it then issues tool calls iteratively — running code, anchoring findings, and querying context — until it judges the investigation complete and calls <code>synthesise</code>. A separate charting phase and a post-synthesis reviewer complete the run.</p>
+
+  <p>The agentic pipeline is architecturally separate from the workflow pipeline (<code>planner.py</code> → <code>executor_loop.py</code> → <code>synthesiser.py</code> → <code>reviewer.py</code>). The <code>agentic/</code> module imports shared infrastructure from <code>agent.py</code> (<code>run_sandboxed</code>, <code>get_schema_with_quality</code>) and <code>config.py</code> but never modifies them. All agentic-specific logic stays within <code>agentic/</code>.</p>
+
+  <div class="diagram-wrap">
+    <div class="mermaid">
+flowchart TD
+    IN["Goal · df · AgentConfig\n(model, dict_path, max_turns, reviewer_model)"]
+    AD["get_adapter(model_name)\nModelAdapter: system_prompt · options · extra_kwargs"]
+    SP["System Prompt\nschema + goal + data dictionary\n+ RECORDED FINDINGS slot"]
+
+    IN --> AD --> SP --> LOOP
+
+    LOOP["Analysis Loop — agent_loop.py\n≤ AGENTIC_MAX_TURNS turns\nTurnHistory.build_messages() each turn\nclient.chat(tools=TOOL_SCHEMAS, **extra_kwargs)\ndispatch_tool() → result → history"]
+
+    LOOP -->|"synthesise tool called"| CHART
+
+    CHART["generate_charts() — charting.py\nsynthesis + schema in context\n≤ AGENTIC_CHART_TURNS turns\nexecute_code only · repeat-hash guard"]
+
+    CHART --> CITE["verify_citations() — citation_verifier.py\ncheck synthesis numbers vs observations\nformat_citation_preamble() → reviewer prompt"]
+
+    CITE --> REV["review_synthesis() — reviewer.py\n_filter_flags(): drop missing quote-triple, conf &lt; 0.8 downgraded\n_derive_assessment() from flag set"]
+
+    REV --> GATE{"Correctable flags\nconf ≥ 0.8?"}
+
+    GATE -->|"Yes — FAIL"| REVISE["revise_synthesis()\nanalyst model · 1 round only"]
+    REVISE --> REREV["re-review\nlog_review(revision_round=1)"]
+    REREV --> OUT
+
+    GATE -->|"No — PASS / REVIEW"| OUT
+    OUT["AgentResult\nlog_summary() · log_figures()"]
+
+    style LOOP  fill:#0d2b4e,stroke:#388bfd,color:#e6edf3
+    style CHART fill:#2b1e0a,stroke:#e3a04b,color:#e6edf3
+    style REV   fill:#1d1530,stroke:#bc8cff,color:#e6edf3
+    style AD    fill:#0d2b18,stroke:#3fb950,color:#e6edf3
+    style CITE  fill:#161b22,stroke:#79c0ff,color:#e6edf3
+    style OUT   fill:#21262d,stroke:#30363d,color:#8b949e
+    style GATE  fill:#21262d,stroke:#30363d,color:#e6edf3
+    </div>
+  </div>
+
+  <div class="callout design">
+    <strong>Isolation rule.</strong> The <code>agentic/</code> module imports from <code>agent.py</code> and <code>config.py</code> but never modifies them. Any agentic-specific logic — including sandbox pre-injection of <code>stats</code> and <code>sm</code> — lives in <code>agentic/tools.py</code>, not in <code>agent.py</code>.
+  </div>
+
+  <!-- ======================================================= LOOP FLOW -->
+  <h2 id="loop-flow">Agent Loop Flow — Pseudocode</h2>
+
+<pre><code><span class="kw">def</span> <span class="fn">run_agentic</span>(<span class="typ">config</span>: AgentConfig) <span class="op">-&gt;</span> AgentResult:
+
+  <span class="cmt"># 0. Resolve adapter and build system prompt</span>
+  adapter     = <span class="fn">get_adapter</span>(config.model_name)
+  schema      = <span class="fn">get_schema_with_quality</span>(config.df, config.dataset_name)
+  dict_text   = Path(config.dict_path).<span class="fn">read_text</span>() <span class="kw">if</span> config.dict_path <span class="kw">else</span> <span class="str">""</span>
+  system_prompt = adapter.<span class="fn">system_prompt</span>(schema, config.goal, dict_text)
+
+  <span class="cmt"># 1. Initialise shared state</span>
+  history     = <span class="fn">TurnHistory</span>(system_prompt)
+  logger      = <span class="fn">AgentLogger</span>(run_id, config.goal, config.model_name)
+  observations = []         <span class="cmt"># accumulated tool outputs for reviewer</span>
+  repeat_counter = {}       <span class="cmt"># snippet → count (repeat-loop guard)</span>
+  no_tool_count  = <span class="num">0</span>       <span class="cmt"># consecutive turns with no tool call</span>
+  synthesis   = <span class="num">None</span>
+
+  <span class="cmt"># 2. Analysis loop</span>
+  <span class="kw">for</span> turn <span class="kw">in</span> <span class="fn">range</span>(config.max_turns):
+    response = client.<span class="fn">chat</span>(
+      model=config.model_name,
+      messages=history.<span class="fn">build_messages</span>(),
+      tools=TOOL_SCHEMAS,
+      options=adapter.<span class="fn">options</span>(),
+      **adapter.<span class="fn">extra_kwargs</span>()            <span class="cmt"># think=False for qwen3; {} for gpt-oss</span>
+    )
+
+    <span class="kw">if not</span> response.message.tool_calls:
+      no_tool_count += <span class="num">1</span>
+      <span class="kw">if</span> no_tool_count >= <span class="num">2</span>:
+        history.<span class="fn">add_nudge</span>(<span class="str">"URGENT: call a tool now."</span>)
+      history.<span class="fn">add_assistant_text</span>(response.message.content)
+      <span class="kw">continue</span>
+    no_tool_count = <span class="num">0</span>
+
+    tc        = response.message.tool_calls[<span class="num">0</span>]
+    tool_name = tc.function.name
+    tool_args = tc.function.arguments
+
+    tool_result = <span class="fn">dispatch_tool</span>(tool_name, tool_args, config)
+
+    <span class="cmt"># Strip figure_bytes before JSONL logging — PNG bytes not JSON-serialisable</span>
+    log_result  = {k: v <span class="kw">for</span> k, v <span class="kw">in</span> tool_result.items() <span class="kw">if</span> k != <span class="str">"figure_bytes"</span>}
+    logger.<span class="fn">log_turn</span>(turn, response, tool_name, tool_args, log_result)
+
+    history.<span class="fn">add_tool_turn</span>(response.message, tool_name, tool_result)
+    observations.<span class="fn">append</span>({<span class="str">"turn"</span>: turn, <span class="str">"tool"</span>: tool_name, <span class="str">"result"</span>: log_result})
+
+    <span class="cmt"># Repeat-loop guard: 3 identical observations triggers a nudge</span>
+    snippet = <span class="fn">str</span>(tool_result)[:<span class="num">200</span>]
+    repeat_counter[snippet] = repeat_counter.<span class="fn">get</span>(snippet, <span class="num">0</span>) + <span class="num">1</span>
+    <span class="kw">if</span> repeat_counter[snippet] >= <span class="num">3</span>:
+      history.<span class="fn">add_nudge</span>(<span class="str">"STOP retrying. Move on or call synthesise."</span>)
+
+    <span class="kw">if</span> tool_name == <span class="str">"synthesise"</span>:
+      synthesis = tool_args[<span class="str">"synthesis"</span>]
+      <span class="kw">break</span>
+
+  <span class="cmt"># 3. Charting phase</span>
+  charts = <span class="fn">generate_charts</span>(synthesis, schema, config, adapter, logger)
+
+  <span class="cmt"># 4. Model swap if reviewer_model != analyst model</span>
+  <span class="kw">if</span> config.reviewer_model <span class="kw">and</span> config.reviewer_model != config.model_name:
+    <span class="fn">_unload_model</span>(config.model_name)
+
+  <span class="cmt"># 5. Review + optional single revision round</span>
+  review = <span class="fn">review_synthesis</span>(synthesis, observations, config, logger, revision_round=<span class="num">0</span>)
+
+  <span class="kw">if</span> review.needs_revision:
+    revised   = <span class="fn">revise_synthesis</span>(synthesis, review, observations, config)  <span class="cmt"># analyst model</span>
+    synthesis = revised
+    review    = <span class="fn">review_synthesis</span>(revised, observations, config, logger, revision_round=<span class="num">1</span>)
+
+  logger.<span class="fn">log_summary</span>(synthesis, review, charts)
+  <span class="kw">return</span> AgentResult(synthesis=synthesis, review=review, charts=charts, ...)</code></pre>
+
+  <!-- ======================================================= AGENT_LOOP -->
+  <h2 id="mod-agent-loop">
+    <span class="pill pill-loop">agent_loop.py</span>
+    Agent Loop
+  </h2>
+
+  <p>Entry point for all agentic runs. Contains <code>AgentConfig</code>, <code>AgentResult</code>, and <code>run_agentic()</code>. Imports from all other <code>agentic/</code> sub-modules but contains no tool dispatch or review logic itself.</p>
+
+  <h3>AgentConfig</h3>
+
+  <div class="sig">
+    <span class="sig-fn">AgentConfig</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">goal</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">df</span>: <span class="sig-type">pd.DataFrame</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">dataset_name</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">model_name</span>: <span class="sig-type">str = AGENTIC_DEFAULT_MODEL</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">reviewer_model</span>: <span class="sig-type">Optional[str] = None</span>,<span class="sig-type"> &nbsp;# None = self-review</span><br>
+    &nbsp;&nbsp;<span class="sig-param">dict_path</span>: <span class="sig-type">Optional[str] = None</span>,<span class="sig-type"> &nbsp;# plain-text data dictionary file</span><br>
+    &nbsp;&nbsp;<span class="sig-param">collections_config</span>: <span class="sig-type">Optional[dict] = None</span>,<span class="sig-type"> &nbsp;# for retrieve_context tool</span><br>
+    &nbsp;&nbsp;<span class="sig-param">max_turns</span>: <span class="sig-type">int = AGENTIC_MAX_TURNS</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">chart_turns</span>: <span class="sig-type">int = AGENTIC_CHART_TURNS</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">verbose</span>: <span class="sig-type">bool = False</span><br>
+    )
+  </div>
+
+  <p><code>dict_path</code> is the most important field after <code>goal</code>. If set, the plain-text data dictionary is read at run start and embedded in the system prompt via <code>adapter.system_prompt(dict_text=...)</code>. Without it, the model must infer column semantics from names and types alone, which produces framing errors on ambiguous fields.</p>
+
+  <h3 id="model-swap">Model Swap — <code>_unload_model()</code></h3>
+
+  <p>When <code>reviewer_model</code> differs from <code>model_name</code>, the analyst model must be evicted from Ollama VRAM before the reviewer loads. On a 128GB machine running a 35B MoE model, failing to unload leaves insufficient headroom for the 120B reviewer, causing swap-induced hangs.</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">_unload_model</span>(model_name: str):
+  <span class="cmt"># keep_alive=0 instructs Ollama to evict the model immediately after this call</span>
+  client.<span class="fn">generate</span>(model=model_name, prompt=<span class="str">""</span>, keep_alive=<span class="num">0</span>)
+
+<span class="cmt"># _active_model tracks which model is currently resident</span>
+<span class="cmt"># swap guard: only fires when reviewer_model != model_name</span>
+<span class="cmt"># revise_synthesis() always uses the analyst model — the reviewer judges, not rewrites</span></code></pre>
+
+  <!-- ======================================================= TOOLS -->
+  <h2 id="mod-tools">
+    <span class="pill pill-tools">tools.py</span>
+    Tool Schemas &amp; Dispatch
+  </h2>
+
+  <p>Defines <code>TOOL_SCHEMAS</code> (the JSON schema list passed to <code>client.chat(tools=...)</code>) and all <code>_dispatch_*()</code> functions. The dispatch router <code>dispatch_tool(name, args, config)</code> is the single call site in <code>agent_loop.py</code>.</p>
+
+  <h3 id="tool-schemas">Tool Schemas</h3>
+
+  <p>Five tools in total. The model's understanding of available actions comes exclusively from these schema definitions — not from prompt rules.</p>
+
+<pre><code>TOOL_SCHEMAS = [
+  {
+    <span class="str">"type"</span>: <span class="str">"function"</span>,
+    <span class="str">"function"</span>: {
+      <span class="str">"name"</span>: <span class="str">"execute_code"</span>,
+      <span class="str">"description"</span>: <span class="str">"Write and execute Python against the dataset. Use df for the DataFrame..."</span>,
+      <span class="str">"parameters"</span>: {
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {
+          <span class="str">"code"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"Python code. Use df. print() results."</span>}
+        },
+        <span class="str">"required"</span>: [<span class="str">"code"</span>]
+      }
+    }
+  },
+  {
+    <span class="str">"type"</span>: <span class="str">"function"</span>,
+    <span class="str">"function"</span>: {
+      <span class="str">"name"</span>: <span class="str">"record_finding"</span>,
+      <span class="str">"description"</span>: <span class="str">"Anchor key numbers from the IMMEDIATELY PRECEDING execute_code output..."</span>,
+      <span class="str">"parameters"</span>: {
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {
+          <span class="str">"label"</span>:   {<span class="str">"type"</span>: <span class="str">"string"</span>, <span class="str">"description"</span>: <span class="str">"Short label for this dimension"</span>},
+          <span class="str">"finding"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>,
+                       <span class="str">"description"</span>: <span class="str">"COPY exact numbers from the output above. Example: ..."</span>}
+        },
+        <span class="str">"required"</span>: [<span class="str">"label"</span>, <span class="str">"finding"</span>]
+      }
+    }
+  },
+  <span class="cmt">// get_schema, retrieve_context, synthesise — same pattern</span>
+]</code></pre>
+
+  <div class="callout warn">
+    <strong>tool_choice is not supported by the Ollama Python client.</strong> The OpenAI <code>tool_choice: "required"</code> parameter does not exist in <code>ollama.Client.chat()</code>. The <code>required</code> array in the schema prevents field omission but cannot prevent empty strings — that is why <code>_dispatch_record_finding()</code> validates and rejects at dispatch time, not at schema level.
+  </div>
+
+  <h3>Dispatch Functions</h3>
+
+  <h4>_dispatch_execute_code()</h4>
+
+<pre><code><span class="kw">def</span> <span class="fn">_dispatch_execute_code</span>(code: str, df: pd.DataFrame) <span class="op">-&gt;</span> dict:
+  <span class="cmt"># Pre-inject scientific libraries into sandbox globals</span>
+  <span class="kw">from</span> scipy <span class="kw">import</span> stats
+  <span class="kw">import</span> statsmodels.api <span class="kw">as</span> sm
+  extra_globals = {<span class="str">"stats"</span>: stats, <span class="str">"sm"</span>: sm}
+
+  <span class="cmt"># run_sandboxed() is imported from agent.py (isolation rule)</span>
+  result = <span class="fn">run_sandboxed</span>(code, df, extra_globals=extra_globals)
+
+  <span class="cmt"># result["figure_bytes"] may be present — caller strips before log_turn()</span>
+  <span class="kw">return</span> result   <span class="cmt"># {ok, stdout, frames, figure_bytes?, error?}</span></code></pre>
+
+  <div class="callout note">
+    <strong>scipy and statsmodels are pre-injected into every execute_code call.</strong> The model assumes both are in scope as <code>stats</code> and <code>sm</code> without importing. Without the pre-injection, OLS regressions and statistical tests produce <code>NameError</code> every time. This is agentic-specific behaviour kept in <code>tools.py</code>, not added to <code>agent.py</code>.
+  </div>
+
+  <h4>_dispatch_record_finding()</h4>
+
+<pre><code><span class="kw">def</span> <span class="fn">_dispatch_record_finding</span>(label: str, finding: str, store: list) <span class="op">-&gt;</span> dict:
+  <span class="kw">if not</span> finding.<span class="fn">strip</span>():
+    <span class="cmt"># Reject empty — enforce immediately with a directive, not a suggestion</span>
+    <span class="kw">return</span> {
+      <span class="str">"error"</span>: (
+        <span class="str">"finding cannot be empty. "</span>
+        <span class="str">"Immediately call record_finding again. "</span>
+        <span class="str">"Copy exact numbers from the immediately preceding execute_code output. "</span>
+        <span class="str">"Do not run more code before fixing this."</span>
+      ),
+      <span class="str">"recorded_findings"</span>: store
+    }
+
+  store.<span class="fn">append</span>({<span class="str">"label"</span>: label, <span class="str">"finding"</span>: finding})
+  <span class="kw">return</span> {<span class="str">"recorded_findings"</span>: store}   <span class="cmt"># full list returned each call</span></code></pre>
+
+  <h4>_dispatch_synthesise()</h4>
+<pre><code><span class="kw">def</span> <span class="fn">_dispatch_synthesise</span>(synthesis: str) <span class="op">-&gt;</span> dict:
+  <span class="cmt"># Just returns the text — agent_loop handles the break</span>
+  <span class="kw">return</span> {<span class="str">"synthesis"</span>: synthesis, <span class="str">"status"</span>: <span class="str">"synthesis_complete"</span>}</code></pre>
+
+  <!-- ======================================================= CONTEXT -->
+  <h2 id="mod-context">
+    <span class="pill pill-ctx">context.py</span>
+    TurnHistory
+  </h2>
+
+  <p>Manages the message list for each <code>client.chat()</code> call. The agent loop calls <code>build_messages()</code> every turn — the list grows as tool calls and results accumulate. No truncation is applied; context growth is monitored via <code>tokens_in</code> in turn logs.</p>
+
+  <div class="sig">
+    <span class="sig-fn">TurnHistory</span>(<span class="sig-param">system_prompt</span>: <span class="sig-type">str</span>)
+  </div>
+
+  <table>
+    <thead><tr><th>Method</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>build_messages()</td><td>Returns <code>[{role:"system", content:system_prompt}, ...all turns]</code>. Called each turn — the list is not modified in place.</td></tr>
+      <tr><td>add_tool_turn(assistant_msg, tool_name, tool_result)</td><td>Appends the assistant message (with <code>tool_calls</code>) and the corresponding tool result message in Ollama format.</td></tr>
+      <tr><td>add_assistant_text(content)</td><td>Appends a plain assistant message (no tool call). Used when the model responds with text instead of a tool — logged, counts toward no-tool guard.</td></tr>
+      <tr><td>add_nudge(message)</td><td>Appends a user-role message injected by the loop guard. Used for repeat-loop nudges and no-tool-count urgents. Visible to the model as if from the user.</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Tool Result Message Format</h4>
+  <p>Ollama expects tool results as a message with <code>role: "tool"</code> and a <code>name</code> field matching the tool call. <code>content</code> is a JSON-serialised string of the result dict.</p>
+<pre><code>{
+  <span class="str">"role"</span>:    <span class="str">"tool"</span>,
+  <span class="str">"name"</span>:    <span class="str">"execute_code"</span>,                   <span class="cmt"># must match tool call name</span>
+  <span class="str">"content"</span>: <span class="str">"{\"ok\": true, \"stdout\": \"...\"}"</span>  <span class="cmt"># JSON string</span>
+}</code></pre>
+
+  <div class="callout note">
+    <strong>Context summarisation is not yet implemented.</strong> If <code>tokens_in</code> in the turn logs approaches <code>AGENTIC_NUM_CTX = 32768</code>, the model will degrade silently. Monitor logs before adding long-running goals.
+  </div>
+
+  <!-- ======================================================= LOGGING -->
+  <h2 id="mod-logging">
+    <span class="pill pill-log">logging.py</span>
+    AgentLogger
+  </h2>
+
+  <p>Writes a JSONL log to <code>agentic_logs/</code>. Each run produces one file; each turn, review, figure set, and summary is a separate record in that file distinguished by <code>record_type</code>. The HTML report generator (<code>generate_agentic_report.py</code>) reads this file to produce the per-goal cards.</p>
+
+  <div class="sig">
+    <span class="sig-fn">AgentLogger</span>(<span class="sig-param">run_id</span>: <span class="sig-type">str</span>, <span class="sig-param">goal</span>: <span class="sig-type">str</span>, <span class="sig-param">model</span>: <span class="sig-type">str</span>, <span class="sig-param">log_dir</span>: <span class="sig-type">str = "agentic_logs"</span>)
+  </div>
+
+  <table>
+    <thead><tr><th>Method</th><th>record_type</th><th>Key fields written</th></tr></thead>
+    <tbody>
+      <tr><td>log_turn(turn, response, tool_name, tool_args, tool_result)</td><td>"turn"</td><td>turn, elapsed_s, action, tool_call, result, tokens_in, tokens_out, cumulative_s, ollama_eval_duration_ms, error</td></tr>
+      <tr><td>log_review(review_result, elapsed_s, revision_round)</td><td>"review"</td><td>overall_assessment, flags, reviewer_note, reviewer_model, elapsed_s, revision_round (0=initial, 1=post-revision)</td></tr>
+      <tr><td>log_figures(figure_bytes_list)</td><td>"figures"</td><td>figures: list of base64-encoded PNG strings</td></tr>
+      <tr><td>log_summary(synthesis, review, charts)</td><td>"summary"</td><td>synthesis, overall_assessment, revision_count, citation_summary, turns_used, total_time_s, model, reviewer_model</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>tokens_in / tokens_out: use <code>or 0</code>, not <code>.get(key, 0)</code>.</strong> gpt-oss:120b returns <code>eval_count: null</code> in some responses. <code>response.eval_count or 0</code> correctly treats null as 0. <code>response.get("eval_count", 0)</code> returns None when the key exists with a null value, causing arithmetic failures downstream.
+  </div>
+
+  <h4>JSONL File Pattern</h4>
+<pre><code><span class="cmt"># agentic_logs/ is gitignored — logs stay local</span>
+agentic_logs/agentic_{dataset}_{model}_{timestamp}.jsonl
+
+<span class="cmt"># Each line is one record:</span>
+{<span class="str">"record_type"</span>: <span class="str">"turn"</span>,    <span class="str">"turn"</span>: <span class="num">0</span>, ...}
+{<span class="str">"record_type"</span>: <span class="str">"turn"</span>,    <span class="str">"turn"</span>: <span class="num">1</span>, ...}
+...
+{<span class="str">"record_type"</span>: <span class="str">"review"</span>,  <span class="str">"revision_round"</span>: <span class="num">0</span>, ...}
+{<span class="str">"record_type"</span>: <span class="str">"figures"</span>, <span class="str">"figures"</span>: [<span class="str">"iVBORw0KGgo..."</span>]}
+{<span class="str">"record_type"</span>: <span class="str">"review"</span>,  <span class="str">"revision_round"</span>: <span class="num">1</span>, ...}   <span class="cmt"># only if revised</span>
+{<span class="str">"record_type"</span>: <span class="str">"summary"</span>, ...}</code></pre>
+
+  <!-- ======================================================= CHARTING -->
+  <h2 id="mod-charting">
+    <span class="pill pill-chart">charting.py</span>
+    Charting Phase
+  </h2>
+
+  <p>Runs a second, separate agent loop after the synthesis is complete. The model receives the synthesis text and column schema as context; it calls <code>execute_code</code> to generate charts. The analysis <code>TurnHistory</code> is not carried over — the charting phase starts fresh with a chart-specific system prompt from the adapter.</p>
+
+  <div class="sig">
+    <span class="sig-fn">generate_charts</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">synthesis</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">schema</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">config</span>: <span class="sig-type">AgentConfig</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">adapter</span>: <span class="sig-type">ModelAdapter</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">logger</span>: <span class="sig-type">AgentLogger</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">list[bytes]</span> <span class="sig-type"># list of PNG figure_bytes</span>
+  </div>
+
+  <h4>Repeat-hash guard</h4>
+<pre><code><span class="cmt"># charting.py — inside generate_charts()</span>
+seen_hashes = set()
+
+<span class="kw">for</span> turn <span class="kw">in</span> <span class="fn">range</span>(config.chart_turns):
+  <span class="cmt"># ... get tool call ...</span>
+  code_hash = <span class="fn">hashlib.md5</span>(normalised_code.<span class="fn">encode</span>()).<span class="fn">hexdigest</span>()
+
+  <span class="kw">if</span> code_hash <span class="kw">in</span> seen_hashes:
+    <span class="kw">break</span>   <span class="cmt"># identical code re-submitted — stop immediately</span>
+  seen_hashes.<span class="fn">add</span>(code_hash)
+
+  result = <span class="fn">_dispatch_execute_code</span>(code, config.df)
+  <span class="cmt"># Counter injected into tool response so model knows remaining budget:</span>
+  <span class="cmt"># "Charts generated so far: N. You may generate up to M more, or stop if done."</span></code></pre>
+
+  <div class="callout note">
+    <strong>Synthesis is sanitised before injection into the chart system prompt.</strong> <code>_sanitise_synthesis()</code> strips non-ASCII characters (e.g. ★, currency symbols) before passing the synthesis text to <code>adapter.chart_system_prompt()</code>. These characters crash Ollama's XML tool schema parser. The full synthesis (including non-ASCII) is used everywhere else — only the chart prompt injection is sanitised.
+  </div>
+
+  <div class="callout note">
+    <strong>Schema is passed to the charting phase.</strong> Without it, the model guesses column names, fails on the first chart call, then spends all remaining turns listing columns to recover — producing zero charts. The schema is captured from the analysis phase and passed explicitly to <code>generate_charts()</code>.
+  </div>
+
+  <!-- ======================================================= REVIEWER -->
+  <h2 id="mod-reviewer">
+    <span class="pill pill-rev">reviewer.py</span>
+    Reviewer &amp; Revision
+  </h2>
+
+  <p>One LLM call per run (not per-finding). The reviewer receives the full synthesis and all accumulated observations, produces a JSON flag list, and the assessment is derived deterministically from the flag set — the model's stated <code>overall_assessment</code> field is ignored. One revision round is triggered if correctable flags with <code>confidence ≥ 0.8</code> are present.</p>
+
+  <div class="sig">
+    <span class="sig-fn">review_synthesis</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">synthesis</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">observations</span>: <span class="sig-type">list[dict]</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">config</span>: <span class="sig-type">AgentConfig</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">logger</span>: <span class="sig-type">AgentLogger</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">revision_round</span>: <span class="sig-type">int = 0</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">AgenticReviewResult</span>
+  </div>
+
+  <div class="sig">
+    <span class="sig-fn">revise_synthesis</span>(<br>
+    &nbsp;&nbsp;<span class="sig-param">synthesis</span>: <span class="sig-type">str</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">review</span>: <span class="sig-type">AgenticReviewResult</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">observations</span>: <span class="sig-type">list[dict]</span>,<br>
+    &nbsp;&nbsp;<span class="sig-param">config</span>: <span class="sig-type">AgentConfig</span><br>
+    ) <span class="sig-arrow">→</span> <span class="sig-return">str</span> <span class="sig-type"># revised synthesis text</span>
+  </div>
+
+  <p><code>revise_synthesis()</code> always uses <strong>the analyst model</strong> (<code>config.model_name</code>), not the reviewer model. The analyst corrects its own work; the external reviewer then judges again. <code>num_predict=8192</code> on all reviewer and revision calls — gpt-oss:20b runs thinking mode on non-tool prompts, exhausting 1024 tokens entirely on thinking with empty content.</p>
+
+  <h3 id="reviewer-flags">Reviewer Flag Schema</h3>
+
+  <table>
+    <thead><tr><th>Type</th><th>Meaning</th><th>Correctable</th><th>Confidence cap (post-review)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="flag-correctable">FALSE_CLAIM</span></td>
+        <td>Stated X; observations say Y or are absent</td>
+        <td>Yes</td><td>→ LOW</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">UNSUPPORTED_MAGNITUDE</span></td>
+        <td>Direction right; "dominates/majority/primary driver" not backed by numbers. Statistical terms (skewed, correlated, bimodal, range, variance, quartile) explicitly excluded.</td>
+        <td>Yes</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">MISSING_CAVEAT</span></td>
+        <td>Conclusion right; material qualification absent. Reviewer must quote the synthesis section checked — if caveat present in any form (different words, approximate phrasing) must not flag.</td>
+        <td>Yes</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-correctable">PITFALL</span></td>
+        <td>Known analytical trap (accounting identity, Simpson's paradox, base rate). Must name the trap mechanism with specific numbers AND quote the specific distorted conclusion. DQ notes not used analytically are explicitly excluded.</td>
+        <td>Yes</td><td>→ LOW</td>
+      </tr>
+      <tr>
+        <td><span class="flag-noncorrectable">DQ_CONCERN</span></td>
+        <td>Data quality limits finding — threshold: n &lt; 15 records or &gt; 10% null. Not a synthesis error. Do not flag groups of 50, 76, or 100.</td>
+        <td>No</td><td>→ MEDIUM</td>
+      </tr>
+      <tr>
+        <td><span class="flag-noncorrectable">SCOPE_GAP</span></td>
+        <td>A goal dimension was not investigated</td>
+        <td>No</td><td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="confidence-gate">Confidence Gate — <code>_filter_flags()</code></h3>
+
+  <p>The confidence gate is applied after the reviewer LLM call and before <code>_derive_assessment()</code>. It enforces two structural rules on correctable flags.</p>
+
+<pre><code><span class="kw">def</span> <span class="fn">_filter_flags</span>(flags: list[dict]) <span class="op">-&gt;</span> list[dict]:
+  filtered = []
+  <span class="kw">for</span> flag <span class="kw">in</span> flags:
+    <span class="kw">if</span> flag[<span class="str">"type"</span>] <span class="kw">in</span> CORRECTABLE_TYPES:
+
+      <span class="cmt"># Rule 1: quote-triple required — drop if any field missing</span>
+      <span class="kw">if not</span> <span class="fn">all</span>(flag.<span class="fn">get</span>(k) <span class="kw">for</span> k <span class="kw">in</span> [<span class="str">"synthesis_quote"</span>, <span class="str">"evidence_quote"</span>, <span class="str">"conflict_reason"</span>]):
+        <span class="kw">continue</span>   <span class="cmt"># silently dropped</span>
+
+      <span class="cmt"># Rule 2: confidence gate — below threshold, downgrade to REVIEW (no revision)</span>
+      conf = flag.<span class="fn">get</span>(<span class="str">"confidence"</span>, <span class="num">0.0</span>)
+      <span class="kw">if</span> conf &lt; _CONFIDENCE_THRESHOLD:   <span class="cmt"># _CONFIDENCE_THRESHOLD = 0.8</span>
+        flag[<span class="str">"_review_only"</span>] = True     <span class="cmt"># logged; does not trigger revision</span>
+
+    filtered.<span class="fn">append</span>(flag)
+  <span class="kw">return</span> filtered
+
+<span class="kw">def</span> <span class="fn">_derive_assessment</span>(flags: list[dict]) <span class="op">-&gt;</span> str:
+  correctable_high = [f <span class="kw">for</span> f <span class="kw">in</span> flags
+                      <span class="kw">if</span> f[<span class="str">"type"</span>] <span class="kw">in</span> CORRECTABLE_TYPES <span class="kw">and not</span> f.<span class="fn">get</span>(<span class="str">"_review_only"</span>)]
+  advisory = [f <span class="kw">for</span> f <span class="kw">in</span> flags <span class="kw">if</span> f[<span class="str">"type"</span>] <span class="kw">in</span> NON_CORRECTABLE_TYPES]
+  low_conf = [f <span class="kw">for</span> f <span class="kw">in</span> flags <span class="kw">if</span> f.<span class="fn">get</span>(<span class="str">"_review_only"</span>)]
+
+  <span class="kw">if</span>   correctable_high: <span class="kw">return</span> <span class="str">"FAIL"</span>     <span class="cmt"># triggers revision</span>
+  <span class="kw">elif</span> advisory <span class="kw">or</span> low_conf: <span class="kw">return</span> <span class="str">"REVIEW"</span> <span class="cmt"># logged, no revision</span>
+  <span class="kw">else</span>: <span class="kw">return</span> <span class="str">"PASS"</span></code></pre>
+
+  <div class="callout danger">
+    <strong>Both the exception path and the parse-error path in review_synthesis() must use <code>_derive_assessment([])</code>, not a hardcoded "FAIL".</strong> An empty flag list → PASS. Hardcoding "FAIL" on reviewer call failure causes valid syntheses to be scored as failures when the reviewer itself breaks (e.g. JSON parse error on a legitimate synthesis).
+  </div>
+
+  <h4>JSON Sanitisation — <code>_parse_review_json()</code></h4>
+  <p>gpt-oss:20b writes <code>\$295</code> instead of <code>$295</code> inside JSON strings. <code>\$</code> is not a valid JSON escape sequence; Ollama rejects it with HTTP 500 before Python can intercept it. The prompt rule ("Never escape currency symbols") is the primary fix; the sanitiser is defence-in-depth.</p>
+<pre><code><span class="kw">def</span> <span class="fn">_parse_review_json</span>(json_str: str) <span class="op">-&gt;</span> dict:
+  <span class="cmt"># Strip orphaned backslashes before any valid JSON escape sequence</span>
+  cleaned = re.<span class="fn">sub</span>(<span class="str">r'\\(?=[^"\\/bfnrtu])'</span>, <span class="str">''</span>, json_str)
+  <span class="kw">return</span> json.<span class="fn">loads</span>(cleaned)</code></pre>
+
+  <!-- ======================================================= ADAPTERS -->
+  <h2 id="mod-adapters">
+    <span class="pill pill-adapt">adapters/</span>
+    Model Adapters
+  </h2>
+
+  <p>Each adapter encapsulates everything model-specific: the system prompt, the chart system prompt, Ollama call options, and any extra kwargs (such as <code>think=False</code>). The agent loop never contains <code>if qwen3 then...</code> branches — all such logic lives in the adapter.</p>
+
+  <h3>ModelAdapter ABC — <code>adapters/base.py</code></h3>
+
+  <div class="sig">
+    <span class="sig-fn">system_prompt</span>(<span class="sig-param">self</span>, <span class="sig-param">schema</span>: <span class="sig-type">str</span>, <span class="sig-param">goal</span>: <span class="sig-type">str</span>, <span class="sig-param">dict_text</span>: <span class="sig-type">str = ""</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+  <div class="sig">
+    <span class="sig-fn">chart_system_prompt</span>(<span class="sig-param">self</span>, <span class="sig-param">synthesis</span>: <span class="sig-type">str</span>, <span class="sig-param">schema</span>: <span class="sig-type">str</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+  <div class="sig">
+    <span class="sig-fn">options</span>(<span class="sig-param">self</span>) <span class="sig-arrow">→</span> <span class="sig-return">dict</span> <span class="sig-type"># e.g. {"temperature": 0.0, "num_ctx": AGENTIC_NUM_CTX, "num_predict": 8192}</span>
+  </div>
+  <div class="sig">
+    <span class="sig-fn">extra_kwargs</span>(<span class="sig-param">self</span>) <span class="sig-arrow">→</span> <span class="sig-return">dict</span> <span class="sig-type"># spread into client.chat() — e.g. {"think": False}</span>
+  </div>
+
+  <h3>get_adapter() — <code>adapters/__init__.py</code></h3>
+
+<pre><code><span class="kw">def</span> <span class="fn">get_adapter</span>(model_name: str) <span class="op">-&gt;</span> ModelAdapter:
+  <span class="kw">if</span> <span class="str">"qwen3"</span> <span class="kw">in</span> model_name.<span class="fn">lower</span>():
+    <span class="kw">return</span> <span class="fn">Qwen36Adapter</span>()
+  <span class="kw">elif</span> <span class="str">"gpt-oss"</span> <span class="kw">in</span> model_name.<span class="fn">lower</span>():
+    <span class="kw">return</span> <span class="fn">GptOssAdapter</span>()
+  <span class="kw">raise</span> ValueError(<span class="fn">f</span><span class="str">"No adapter for model: {model_name}"</span>)</code></pre>
+
+  <h4>qwen36.py</h4>
+  <table>
+    <thead><tr><th>Method</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>extra_kwargs()</td><td>Returns <code>{"think": False}</code> — suppresses qwen3.6 chain-of-thought. Must be a top-level kwarg to <code>client.chat()</code>, not inside <code>options={}</code>. When placed in options, Ollama silently ignores it and qwen3.6 runs full CoT — causing 600-second hangs on open-ended prompts.</td></tr>
+      <tr><td>options()</td><td>temperature: 0.0, num_ctx: AGENTIC_NUM_CTX, num_predict: 8192</td></tr>
+      <tr><td>system_prompt()</td><td>Includes <code>sm</code> usage notes, SYNTHESIS STRUCTURE rules (open with direct sentence; close with committed conclusions), NUMBER ACCURACY rules, RECORDED FINDINGS section with good/bad example pair, DATA DICTIONARY block when <code>dict_text</code> is non-empty</td></tr>
+    </tbody>
+  </table>
+
+  <h4>gptoss.py</h4>
+  <table>
+    <thead><tr><th>Method</th><th>Behaviour</th></tr></thead>
+    <tbody>
+      <tr><td>extra_kwargs()</td><td>Returns <code>{}</code>. The <code>think=False</code> kwarg is silently ignored by gpt-oss models — do not attempt to suppress thinking on gpt-oss.</td></tr>
+      <tr><td>options()</td><td>temperature: 0.0, num_ctx: AGENTIC_NUM_CTX, num_predict: 4096. The 4096 cap prevents thinking-mode explosion on non-tool prompts (observed: 19k–29k tokens/turn on HR04 without the cap). Legitimate code generation peaks ~400 tokens; 4096 gives 10× headroom.</td></tr>
+      <tr><td>system_prompt()</td><td>Same structure as qwen36 but also includes prompt rule: "Never escape currency symbols or dollar signs. Write $100 not \$100." — prevents HTTP 500 on JSON synthesis tool calls.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout design">
+    <strong>Adding a new adapter.</strong> Create <code>agentic/adapters/myadapter.py</code>, subclass <code>ModelAdapter</code>, implement all four methods, and add a matching branch in <code>get_adapter()</code>. No changes to <code>agent_loop.py</code> or <code>tools.py</code> are needed.
+  </div>
+
+  <!-- ======================================================= CITATION VERIFIER -->
+  <h2 id="mod-citation">
+    <span class="pill pill-cite">citation_verifier.py</span>
+    Citation Verifier
+  </h2>
+
+  <p>Deterministic pre-check that runs before the reviewer LLM call. Extracts specific numbers and claims from the synthesis and checks each against the observation corpus. Results are injected into the reviewer prompt as a preamble so the reviewer knows which numbers were already verified and need not be re-challenged.</p>
+
+  <div class="sig">
+    <span class="sig-fn">verify_citations</span>(<span class="sig-param">synthesis</span>: <span class="sig-type">str</span>, <span class="sig-param">observations</span>: <span class="sig-type">list[dict]</span>) <span class="sig-arrow">→</span> <span class="sig-return">CitationCheck</span>
+  </div>
+  <div class="sig">
+    <span class="sig-fn">format_citation_preamble</span>(<span class="sig-param">citation_check</span>: <span class="sig-type">CitationCheck</span>) <span class="sig-arrow">→</span> <span class="sig-return">str</span>
+  </div>
+
+  <table>
+    <thead><tr><th>CitationCheck field</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>verified_count</td><td>Numbers/claims found in at least one observation</td></tr>
+      <tr><td>unverified_count</td><td>Numbers/claims not traceable to any observation</td></tr>
+      <tr><td>ambiguous_count</td><td>Numbers found in multiple observations — could be from different turns</td></tr>
+      <tr><td>details</td><td>Per-claim breakdown for the preamble and HTML report</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= DATA STRUCTURES -->
+  <h2 id="ds-agentconfig">Data Structures</h2>
+
+  <h3 id="ds-agentconfig-h">AgentConfig</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">AgentConfig</span>:
+  goal:               str
+  df:                 pd.DataFrame
+  dataset_name:       str
+  model_name:         str = AGENTIC_DEFAULT_MODEL    <span class="cmt"># "qwen3.6:35b-mlx"</span>
+  reviewer_model:     Optional[str] = None           <span class="cmt"># None = self-review</span>
+  dict_path:          Optional[str] = None           <span class="cmt"># plain-text data dictionary</span>
+  collections_config: Optional[dict] = None          <span class="cmt"># vector stores for retrieve_context</span>
+  max_turns:          int = AGENTIC_MAX_TURNS         <span class="cmt"># 25</span>
+  chart_turns:        int = AGENTIC_CHART_TURNS       <span class="cmt"># 7</span>
+  verbose:            bool = False</code></pre>
+
+  <h3 id="ds-agentresult">AgentResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">AgentResult</span>:
+  goal:              str
+  dataset_name:      str
+  model_name:        str
+  synthesis:         str               <span class="cmt"># final written synthesis (post-revision if revised)</span>
+  review:            AgenticReviewResult
+  charts:            list[bytes]       <span class="cmt"># PNG figure bytes from charting phase</span>
+  revision_count:    int               <span class="cmt"># 0 or 1</span>
+  turns_used:        int
+  total_time_s:      float
+  log_path:          str
+  citation_check:    Optional[CitationCheck] = None</code></pre>
+
+  <h3 id="ds-reviewresult">AgenticReviewResult</h3>
+<pre><code><span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="typ">AgenticReviewResult</span>:
+  overall_assessment: str             <span class="cmt"># "PASS" | "REVIEW" | "FAIL" — always derived, never taken from LLM</span>
+  flags:              list[dict]      <span class="cmt"># filtered and gated; see flag schema</span>
+  reviewer_note:      str
+  needs_revision:     bool            <span class="cmt"># True if any correctable flag has confidence ≥ 0.8</span>
+  elapsed_s:          float
+  reviewer_model:     str
+  raw_response:       str
+  parse_error:        Optional[str]
+
+<span class="cmt"># Each correctable flag:</span>
+{
+  <span class="str">"type"</span>:            str,            <span class="cmt"># FALSE_CLAIM | UNSUPPORTED_MAGNITUDE | MISSING_CAVEAT | PITFALL</span>
+  <span class="str">"synthesis_quote"</span>: str,            <span class="cmt"># exact quote from synthesis</span>
+  <span class="str">"evidence_quote"</span>:  str,            <span class="cmt"># exact quote from observations that contradicts it</span>
+  <span class="str">"conflict_reason"</span>: str,            <span class="cmt"># why the two conflict</span>
+  <span class="str">"confidence"</span>:      float,          <span class="cmt"># 0.0–1.0; only ≥ 0.8 causes FAIL + revision</span>
+  <span class="str">"detail"</span>:          str,            <span class="cmt"># one sentence: claim + contradicting evidence</span>
+  <span class="str">"_review_only"</span>:    bool,           <span class="cmt"># True if confidence &lt; threshold — logged, no revision</span>
+}</code></pre>
+
+  <!-- ======================================================= LOOP GUARDS -->
+  <h2 id="loop-guards">Loop Guards</h2>
+
+  <h3>Repeat-loop guard (analysis)</h3>
+  <p>After each tool call, the first 200 characters of the stringified result are compared against a counter. If the same snippet appears 3 times, a nudge is injected into the message history as a user-role message. Without this, qwen3.6 has been observed repeating the same truncated query 13 times on a monthly-trend goal.</p>
+
+  <h3>No-tool guard</h3>
+  <p>A dedicated <code>_no_tool_count</code> counter (separate from the repeat-loop counter) tracks consecutive turns where the model returns text without a tool call. After 2 consecutive no-tool turns, an URGENT nudge fires. The general repeat-loop guard's 3-turn window was too slow to stop this pattern.</p>
+
+  <h3>Repeat-hash guard (charting)</h3>
+  <p>Each code submission in the charting phase is normalised and hashed. If the hash was already seen, the loop breaks immediately — identical code cannot run again. A counter is also returned in the tool response so the model knows how many chart turns remain.</p>
+
+  <!-- ======================================================= SANDBOX INJECTION -->
+  <h2 id="sandbox-injection">Sandbox Pre-injection</h2>
+
+  <p>Every <code>execute_code</code> call in the agentic pipeline pre-injects two scientific libraries into the sandbox globals before the model's code runs. Both adapters document this in their system prompts.</p>
+
+  <table>
+    <thead><tr><th>Name in sandbox</th><th>Module</th><th>Why pre-injected</th></tr></thead>
+    <tbody>
+      <tr><td>stats</td><td>scipy.stats</td><td>Model assumes <code>stats</code> is in scope for t-tests, Mann-Whitney, KS-tests. Without pre-injection: ~4 failed turns per run on complex goals.</td></tr>
+      <tr><td>sm</td><td>statsmodels.api</td><td>OLS regression. Added 30 May 2026 after HR03 <code>No module named 'statsmodels'</code> failure. Model calls <code>sm.OLS(...).fit()</code> unprompted when the goal warrants regression.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Chart generation also pre-injects seaborn as <code>_sns</code> (private name, not advertised) to prevent import failures when model-generated chart code imports seaborn. The injection is in <code>_dispatch_execute_code()</code> inside <code>charting.py</code>.</p>
+
+  <!-- ======================================================= CONFIG REF -->
+  <h2 id="config-ref">
+    <span class="pill pill-cfg">config.py</span>
+    Configuration Reference — Agentic Parameters
+  </h2>
+
+  <table>
+    <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>AGENTIC_DEFAULT_MODEL</td><td>qwen3.6:35b-mlx</td><td>Default analyst model for the agentic pipeline. Selected for deep exploratory analysis; gpt-oss:120b is more conservative but stable.</td></tr>
+      <tr><td>AGENTIC_AVAILABLE_MODELS</td><td>[...]</td><td>Model list for the Streamlit Tab 3 selector.</td></tr>
+      <tr><td>AGENTIC_MAX_TURNS</td><td>25</td><td>Analysis loop turn budget. Raised from 20 after 6/12 CORGI goals hit the limit in the first batch run. Override per run via <code>--max-turns</code> CLI flag.</td></tr>
+      <tr><td>AGENTIC_CHART_TURNS</td><td>7</td><td>Charting phase turn budget. Raised from 5 — 5 was too tight for exploratory chart generation.</td></tr>
+      <tr><td>AGENTIC_NUM_CTX</td><td>32768</td><td>Context window for agentic calls. Separate from <code>OLLAMA_NUM_CTX</code> (16384 for the workflow pipeline) — the agentic loop accumulates history across turns and needs more headroom.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ======================================================= LOG SCHEMA -->
+  <h2 id="log-schema">Log Schema — JSONL Format</h2>
+
+  <h4>Turn record</h4>
+<pre><code>{
+  <span class="str">"record_type"</span>:               <span class="str">"turn"</span>,
+  <span class="str">"run_id"</span>:                    str,
+  <span class="str">"turn"</span>:                      int,
+  <span class="str">"timestamp"</span>:                 str,    <span class="cmt"># ISO 8601</span>
+  <span class="str">"elapsed_s"</span>:                 float,  <span class="cmt"># wall-clock for this turn</span>
+  <span class="str">"cumulative_s"</span>:              float,
+  <span class="str">"action"</span>:                    str,    <span class="cmt"># tool name called</span>
+  <span class="str">"tool_call"</span>:                 dict,   <span class="cmt"># {name, arguments}</span>
+  <span class="str">"result"</span>:                    dict,   <span class="cmt"># tool result (figure_bytes stripped)</span>
+  <span class="str">"tokens_in"</span>:                 int,    <span class="cmt"># prompt_eval_count or 0</span>
+  <span class="str">"tokens_out"</span>:                int,    <span class="cmt"># eval_count or 0</span>
+  <span class="str">"tokens_generated_cumulative"</span>:int,
+  <span class="str">"ollama_eval_duration_ms"</span>:   int|null,
+  <span class="str">"ollama_load_duration_ms"</span>:   int|null,  <span class="cmt"># non-zero = model was loaded/swapped this turn</span>
+  <span class="str">"error"</span>:                     str|null
+}</code></pre>
+
+  <h4>Review record</h4>
+<pre><code>{
+  <span class="str">"record_type"</span>:        <span class="str">"review"</span>,
+  <span class="str">"overall_assessment"</span>: str,          <span class="cmt"># "PASS" | "REVIEW" | "FAIL"</span>
+  <span class="str">"flags"</span>:              list[dict],    <span class="cmt"># filtered flag objects</span>
+  <span class="str">"reviewer_note"</span>:      str,
+  <span class="str">"reviewer_model"</span>:     str,
+  <span class="str">"elapsed_s"</span>:          float,
+  <span class="str">"revision_round"</span>:     int            <span class="cmt"># 0 = initial review, 1 = post-revision re-review</span>
+}</code></pre>
+
+  <h4>Summary record</h4>
+<pre><code>{
+  <span class="str">"record_type"</span>:        <span class="str">"summary"</span>,
+  <span class="str">"goal"</span>:               str,
+  <span class="str">"dataset_name"</span>:       str,
+  <span class="str">"model"</span>:              str,
+  <span class="str">"reviewer_model"</span>:     str,
+  <span class="str">"synthesis"</span>:          str,          <span class="cmt"># final synthesis text</span>
+  <span class="str">"overall_assessment"</span>: str,
+  <span class="str">"revision_count"</span>:     int,          <span class="cmt"># 0 or 1</span>
+  <span class="str">"citation_summary"</span>:   dict,         <span class="cmt"># CitationCheck.details</span>
+  <span class="str">"turns_used"</span>:         int,
+  <span class="str">"total_time_s"</span>:       float,
+  <span class="str">"timestamp"</span>:          str
+}</code></pre>
+
+  <h4>Figures record</h4>
+<pre><code>{
+  <span class="str">"record_type"</span>: <span class="str">"figures"</span>,
+  <span class="str">"figures"</span>:     [str, ...]   <span class="cmt"># base64-encoded PNG strings; read back by generate_agentic_report.py</span>
+}</code></pre>
+
+  <!-- ======================================================= ENTRY POINTS -->
+  <h2 id="entry-points">Entry Points &amp; CLI</h2>
+
+  <table>
+    <thead><tr><th>Script</th><th>Purpose</th><th>Key flags</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>run_agentic_pipeline.py</td>
+        <td>CLI runner for the agentic pipeline. Runs one or all 12 CORGI goals. Default model: <code>AGENTIC_DEFAULT_MODEL</code>. Populates <code>dict_path</code> from <code>DICT_FILES</code> mapping for CORGI datasets.</td>
+        <td><code>--id FD01</code> · <code>--model qwen3.6:35b-mlx</code> · <code>--reviewer-model gpt-oss:120b</code> · <code>--max-turns 30</code> · <code>--verbose</code></td>
+      </tr>
+      <tr>
+        <td>generate_agentic_report.py</td>
+        <td>Reads agentic JSONL logs and produces an HTML report with per-goal cards, inline charts (from base64 figures record), review flags, and turn traces.</td>
+        <td><code>--log agentic_logs/foo.jsonl</code> · <code>--out report.html</code></td>
+      </tr>
+      <tr>
+        <td>test_reviewer.py</td>
+        <td>17-case calibration harness for the agentic reviewer. Covers 7 SHOULD_PASS false-positive guards, 4 SHOULD_FAIL true-positive checks, 3 clean synthesis, and 3 edge cases from observed false-positive patterns.</td>
+        <td><code>--model gpt-oss:120b</code> · <code>--model qwen3.6:35b-mlx</code></td>
+      </tr>
+      <tr>
+        <td>app.py (Tab 3)</td>
+        <td>Streamlit UI for the agentic pipeline. Dataset selector, model selector, goal input, and inline report rendering. Shares the sandbox and vector stores with Tabs 1 and 2.</td>
+        <td><code>streamlit run app.py</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>Example runs</h4>
+<pre><code><span class="cmt"># Single goal, self-review</span>
+python run_agentic_pipeline.py --id FD01 --verbose
+
+<span class="cmt"># Cross-review: qwen3.6 analyst, gpt-oss:120b reviewer</span>
+python run_agentic_pipeline.py --id HR03 \
+  --model qwen3.6:35b-mlx \
+  --reviewer-model gpt-oss:120b
+
+<span class="cmt"># 4-goal dev subset (FD01, FD03, HR03, CL03) — standard regression batch</span>
+python run_agentic_pipeline.py --ids FD01 FD03 HR03 CL03
+
+<span class="cmt"># All 12 CORGI goals overnight</span>
+caffeinate -i python run_agentic_pipeline.py
+
+<span class="cmt"># Reviewer calibration test</span>
+python test_reviewer.py --model gpt-oss:120b
+
+<span class="cmt"># Generate HTML report from latest log</span>
+python generate_agentic_report.py --latest</code></pre>
+
+  <!-- ======================================================= DEPS -->
+  <h2 id="deps">Dependencies</h2>
+
+  <p>All packages shared with the workflow pipeline, plus two scientific libraries added for the agentic sandbox.</p>
+
+  <table>
+    <thead><tr><th>Package</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>ollama</td><td>LLM inference client. All model calls route through <code>ollama.Client(host=OLLAMA_HOST)</code>. Tool calling via <code>client.chat(tools=TOOL_SCHEMAS)</code>.</td></tr>
+      <tr><td>chromadb</td><td>Embedded vector store. Used by the <code>retrieve_context</code> tool via <code>collections_config</code>.</td></tr>
+      <tr><td>pandas</td><td>Dataset operations. <code>df</code> is the primary object in <code>execute_code</code> calls.</td></tr>
+      <tr><td>numpy</td><td>Numerical operations in generated code. Pre-loaded into sandbox globals by <code>run_sandboxed()</code> in <code>agent.py</code>.</td></tr>
+      <tr><td>scipy</td><td>Statistical tests. Pre-injected as <code>stats</code> into every <code>execute_code</code> call via <code>_dispatch_execute_code()</code> in <code>tools.py</code>.</td></tr>
+      <tr><td>statsmodels</td><td>OLS regression and related models. Pre-injected as <code>sm</code> alongside scipy. Install: <code>pip install statsmodels</code> (0.14.6+ in local_llm env).</td></tr>
+      <tr><td>matplotlib</td><td>Chart generation. Figure bytes captured in-memory from <code>plt.savefig(buffer, format="png")</code>.</td></tr>
+      <tr><td>streamlit</td><td>Web UI — Tab 3 hosts the agentic pipeline interface.</td></tr>
+    </tbody>
+  </table>
+
+<pre><code>conda activate local_llm
+pip install scipy statsmodels   <span class="cmt"># if not already present</span>
+
+<span class="cmt"># Verify</span>
+python -c <span class="str">"from scipy import stats; import statsmodels.api as sm; print('ok')"</span></code></pre>
+
+  <footer>
+    Agentic Pipeline · Technical Reference · Local-only, privacy-preserving · All inference via Ollama
+  </footer>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      background:         '#161b22',
+      primaryColor:       '#21262d',
+      primaryTextColor:   '#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor:          '#8b949e',
+      secondaryColor:     '#21262d',
+      tertiaryColor:      '#161b22',
+    },
+    flowchart: { curve: 'basis', nodeSpacing: 40, rankSpacing: 50 }
+  });
+
+  // Sidebar active-link tracking on scroll
+  const headings = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('#sidebar nav a');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0% -80% 0%' });
+
+  headings.forEach(h => observer.observe(h));
+</script>
+
+</body>
+</html>
